@@ -20,7 +20,7 @@ if (!global.mongooseCache) {
  * during Next.js hot reloads and serverless invocations.
  */
 export async function connectDB(): Promise<typeof mongoose> {
-  if (cached.conn) {
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 

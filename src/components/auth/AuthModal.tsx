@@ -18,6 +18,30 @@ interface AuthFormProps {
   onSuccess?: () => void;
 }
 
+function formatAuthError(err: unknown): string {
+  if (typeof err === "object" && err !== null && "code" in err) {
+    const code = (err as { code: string }).code;
+    switch (code) {
+      case "auth/invalid-credential":
+      case "auth/wrong-password":
+        return "Invalid email or password. If you haven't created a password account, please click 'Create an account' below.";
+      case "auth/user-not-found":
+        return "No account found with this email. Click 'Create an account' below to sign up.";
+      case "auth/email-already-in-use":
+        return "An account with this email already exists. Click 'Sign in instead' below.";
+      case "auth/weak-password":
+        return "Password is too weak. Please use at least 6 characters.";
+      case "auth/popup-closed-by-user":
+        return "Sign-in popup was closed before completing.";
+      case "auth/cancelled-popup-request":
+        return "Another sign-in request is in progress.";
+      default:
+        break;
+    }
+  }
+  return err instanceof Error ? err.message : "Authentication failed. Check your credentials.";
+}
+
 export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -67,9 +91,7 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
         await establishServerSession(res.idToken, res.user.displayName || undefined);
       }
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Google sign-in could not be completed.";
-      setError(msg);
+      setError(formatAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -88,9 +110,7 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
         await establishServerSession(res.idToken);
       }
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Authentication failed. Check your credentials.";
-      setError(msg);
+      setError(formatAuthError(err));
     } finally {
       setLoading(false);
     }
