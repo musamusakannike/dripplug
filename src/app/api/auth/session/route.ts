@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { connectDB, isDatabaseConfigured } from "@/lib/db";
 import { verifyFirebaseIdToken } from "@/lib/firebase-admin";
-import { getCurrentUser, setSessionCookie } from "@/lib/auth";
+import {
+  getCurrentUser,
+  signSessionToken,
+  SESSION_COOKIE_NAME,
+  getSessionCookieOptions,
+} from "@/lib/auth";
 import { User } from "@/models/User";
 import { authSessionSchema } from "@/lib/validators";
 import {
@@ -81,8 +86,10 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    await setSessionCookie(sessionUser);
-    return apiSuccess({ user: sessionUser });
+    const token = await signSessionToken(sessionUser);
+    const response = apiSuccess({ user: sessionUser });
+    response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
+    return response;
   } catch (err) {
     return handleApiException(err);
   }

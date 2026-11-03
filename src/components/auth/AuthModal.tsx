@@ -62,9 +62,24 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken, name: displayName }),
     });
-    const json = await res.json();
-    if (!res.ok || !json.ok) {
-      throw new Error(json.error || "Failed to establish session");
+
+    let json: { ok?: boolean; error?: string; data?: { user: any } } | null = null;
+    const rawText = await res.text();
+    if (rawText) {
+      try {
+        json = JSON.parse(rawText);
+      } catch {
+        // Fallback for non-JSON response
+      }
+    }
+
+    if (!res.ok || !json?.ok || !json?.data?.user) {
+      const errorMsg =
+        json?.error ||
+        (rawText && rawText.length < 200
+          ? rawText
+          : `Server returned ${res.status} ${res.statusText || "error"}.`);
+      throw new Error(errorMsg);
     }
 
     setUser(json.data.user);

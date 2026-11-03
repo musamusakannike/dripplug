@@ -1,7 +1,11 @@
-import { clearSessionCookie } from "@/lib/auth";
+import { SESSION_COOKIE_NAME, getSessionCookieOptions } from "@/lib/auth";
 import { apiSuccess } from "@/lib/rate-limit";
 
 export async function POST() {
-  await clearSessionCookie();
-  return apiSuccess({ loggedOut: true });
+  const response = apiSuccess({ loggedOut: true });
+  response.cookies.set(SESSION_COOKIE_NAME, "", {
+    ...getSessionCookieOptions(),
+    maxAge: 0,
+  });
+  return response;
 }

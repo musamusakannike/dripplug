@@ -18,7 +18,17 @@ import { User } from "@/models/User";
  */
 
 export const SESSION_COOKIE_NAME = "dripplug_session";
-const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 14; // 14 days
+export const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 14; // 14 days
+
+export function getSessionCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: SESSION_DURATION_SECONDS,
+  };
+}
 
 function getSecretKey(): Uint8Array {
   const secret =
