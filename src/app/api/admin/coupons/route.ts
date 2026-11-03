@@ -1,0 +1,53 @@
+import { NextRequest } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { connectDB } from "@/lib/db";
+import { Coupon } from "@/models/Coupon";
+import { adminCouponSchema } from "@/lib/validators";
+import { apiError, apiSuccess, handleApiException } from "@/lib/rate-limit";
+
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
+      return apiError("Admin access required.", 403);
+    }
+
+    await connectDB();
+    const body = await req.json();
+    const parsed = adminCouponSchema.parse(body);
+
+    const coupon = await Coupon.create({
+      code: parsed.code.toUpperCase(),
+      type: parsed.type,
+      value: parsed.value,
+      minOrder: parsed.minOrder,
+      expiry: new Date(parsed.expiry),
+      usageLimit: parsed.usageLimit,
+      isActive: parsed.isActive,
+    });
+
+    return apiSuccess({ coupon }, 201);
+  } catch (err) {
+    return handleApiException(err);
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
+      return apiError("Admin access required.", 403);
+    }
+
+    await connectDB();
+    const id = req.nextUrl.searchParams.get("id");
+    if (!id) {
+      return apiError("Coupon ID required.", 400);
+    }
+
+    await Coupon.findByIdAndDelete(id);
+    return apiSuccess({ deleted: true });
+  } catch (err) {
+    return handleApiException(err);
+  }
+}

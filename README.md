@@ -1,36 +1,174 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dripplug — UNILORIN Campus Fashion Store
 
-## Getting Started
+**Dripplug** (`https://dripplug.com.ng`) is a full-stack e-commerce web application built for University of Ilorin (UNILORIN) students in Ilorin, Nigeria. It provides a single, fast destination for jerseys, round neck tees, graphic t-shirts, baggy jeans, joggers, hoodies, and caps with clear Naira pricing and campus drop-off points (**Old Park**, **Hostel**, and **New Park**).
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 1. Tech Stack
+
+- **Framework:** Next.js (App Router) + TypeScript
+- **Database:** MongoDB Atlas + Mongoose (with replica-set transaction support & cached serverless connection helper)
+- **Styling & Motion:** Tailwind CSS + Framer Motion + `lucide-react`
+- **State Management:** Zustand (with `localStorage` guest cart persistence and automatic server-cart merge on login)
+- **Validation & Forms:** Zod + React Hook Form
+- **Authentication:** Firebase Client SDK (Google OAuth popup/redirect fallback + Email/Password) + `firebase-admin` server verification + `jose` signed `httpOnly` session cookies
+- **Payments:** Paystack (Initialize Transaction API + HMAC-SHA512 verified, idempotent Webhook source of truth)
+- **Object Storage:** Cloudflare R2 (`@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`)
+
+---
+
+## 2. Local Setup & Installation
+
+1. **Install dependencies using `pnpm`:**
+   ```bash
+   pnpm install
+   ```
+
+2. **Copy `.env.example` to `.env.local`:**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Fill in your MongoDB Atlas URI, Firebase client/admin credentials, Paystack keys, and Cloudflare R2 keys.
+
+3. **Seed the database (Categories, 20+ Products, Coupons, Verified Student Reviews & Admin User):**
+   ```bash
+   pnpm seed
+   ```
+   > **Note:** The seed script uses remote Unsplash clothing images so it works immediately even before you configure Cloudflare R2 credentials.
+
+4. **Start the development server:**
+   ```bash
+   pnpm dev
+   ```
+   Open `http://localhost:3000`.
+
+---
+
+## 3. Central Configuration & Editing Campus Delivery Points
+
+All brand constants, social links, theme colors, announcement bar settings, and campus delivery points live in **one single file**:
+
+- [`src/config/site.ts`](src/config/site.ts)
+
+To update campus delivery point names, fees (in Naira), or estimated delivery times, edit the `DELIVERY_POINTS` array in `src/config/site.ts`:
+
+```ts
+export const DELIVERY_POINTS: readonly DeliveryPointConfig[] = [
+  {
+    id: "old_park",
+    name: "Old Park",
+    fee: 0,
+    estimatedTime: "Same day (2 – 4 hrs)",
+    description: "Free campus drop-off at UNILORIN Old Park terminal.",
+    requiresAddress: false,
+  },
+  {
+    id: "hostel",
+    name: "Hostel",
+    fee: 500,
+    estimatedTime: "Same day (1 – 3 hrs)",
+    description: "Direct delivery to your school or Tanke/Oke-Odo hostel.",
+    requiresAddress: true,
+  },
+  {
+    id: "new_park",
+    name: "New Park",
+    fee: 750,
+    estimatedTime: "Same day (2 – 4 hrs)",
+    description: "Convenient drop-off at UNILORIN New Park terminal.",
+    requiresAddress: false,
+  },
+];
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Both the checkout UI and server-side `/api/checkout` route read directly from `DELIVERY_POINTS`. The server never trusts delivery fees sent from the browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 4. Paystack Webhook Setup
 
-## Learn More
+`POST /api/webhooks/paystack` is the **source of truth** for marking orders paid and decrementing variant stock.
 
-To learn more about Next.js, take a look at the following resources:
+### Production Setup (`dripplug.com.ng`)
+1. Log in to your [Paystack Dashboard](https://dashboard.paystack.com/#/settings/developers).
+2. Navigate to **Settings → API Keys & Webhooks**.
+3. Set your **Webhook URL** to:
+   ```text
+   https://dripplug.com.ng/api/webhooks/paystack
+   ```
+4. Copy your **Secret Key** (`sk_live_...` or `sk_test_...`) into `PAYSTACK_SECRET_KEY` and **Public Key** into `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Local Webhook Testing (via Tunnel / ngrok)
+1. Start your Next.js server (`pnpm dev` on port `3000`).
+2. Start a tunnel:
+   ```bash
+   npx ngrok http 3000
+   ```
+3. Copy the HTTPS forwarding URL and paste `<https-ngrok-url>/api/webhooks/paystack` into your Paystack Test Webhook URL field.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 5. Firebase Authentication Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2. Enable **Authentication → Sign-in method**:
+   - **Google**
+   - **Email/Password**
+3. Under **Authentication → Settings → Authorized domains**, add:
+   - `localhost`
+   - `dripplug.com.ng`
+4. Copy the Web App config into `NEXT_PUBLIC_FIREBASE_*` in `.env.local`.
+5. Go to **Project Settings → Service accounts → Generate new private key**, and copy `project_id`, `client_email`, and `private_key` into `FIREBASE_ADMIN_*`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 6. Cloudflare R2 Bucket & CORS Configuration
+
+Product and category images uploaded in `/admin` go directly from the browser to Cloudflare R2 using short-lived presigned `PUT` URLs generated by `POST /api/admin/upload`.
+
+1. In the Cloudflare Dashboard, go to **R2 Object Storage** and create a bucket (e.g. `dripplug-media`).
+2. Connect a custom public domain (e.g. `https://cdn.dripplug.com.ng`) or enable the `.r2.dev` public bucket URL, and set `R2_PUBLIC_URL` in `.env.local`.
+3. Under your bucket's **Settings → CORS Policy**, paste the following JSON:
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://dripplug.com.ng",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "PUT",
+      "HEAD"
+    ],
+    "AllowedHeaders": [
+      "Content-Type",
+      "Content-Length"
+    ],
+    "ExposeHeaders": [
+      "ETag"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+---
+
+## 7. Abandoned Order Expiry Cron
+
+Pending orders older than `PENDING_ORDER_EXPIRY_MINUTES` (45 minutes) can be automatically cancelled by calling:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://dripplug.com.ng/api/cron/expire-orders
+```
+
+---
+
+## 8. Deployment to `dripplug.com.ng`
+
+1. Push the repository to GitHub and import it into Vercel (or your preferred Node/Docker host).
+2. Configure all environment variables from `.env.example` with `NEXT_PUBLIC_APP_URL="https://dripplug.com.ng"`.
+3. Point your DNS records for `dripplug.com.ng` to your hosting provider.
+4. Verify that `dripplug.com.ng` is listed in **Firebase Authorized Domains**, **Cloudflare R2 CORS AllowedOrigins**, and your **Paystack Live Webhook URL**.
