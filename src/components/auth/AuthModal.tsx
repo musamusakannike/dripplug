@@ -25,9 +25,26 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
 
   const login = useAuthStore((s) => s.login);
   const register = useAuthStore((s) => s.register);
-  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle);
   const syncWithServer = useCartStore((s) => s.syncWithServer);
   const addToast = useToastStore((s) => s.addToast);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("error");
+    if (oauthError) {
+      const messages: Record<string, string> = {
+        google_oauth_cancelled: "Google sign-in was cancelled.",
+        google_token_exchange_failed:
+          "Google OAuth token exchange failed. Ensure GOOGLE_CLIENT_SECRET and the callback URI are configured.",
+        google_missing_access_token: "Could not obtain access token from Google.",
+        google_profile_failed: "Could not retrieve Google account profile.",
+        google_email_required: "Your Google account must have a verified email address.",
+        google_server_error: "An unexpected server error occurred during Google sign-in.",
+      };
+      setError(messages[oauthError] || "Google sign-in could not be completed.");
+    }
+  }, []);
 
   async function completeLogin(userName: string) {
     await syncWithServer();
@@ -44,16 +61,15 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
     }
   }
 
-  async function handleGoogleAuth() {
+  function handleGoogleAuth() {
     setError(null);
     setLoading(true);
-    const result = await loginWithGoogle();
-    if (result.success && result.user) {
-      await completeLogin(result.user.name);
-    } else {
-      setError(result.error || "Google sign-in failed. Please try again.");
-    }
-    setLoading(false);
+    const target =
+      redirectTo ||
+      (typeof window !== "undefined" && window.location.pathname !== "/login"
+        ? window.location.pathname + window.location.search
+        : "/");
+    window.location.href = `/api/auth/google?redirect=${encodeURIComponent(target)}`;
   }
 
   async function handleSubmit(e: React.FormEvent) {

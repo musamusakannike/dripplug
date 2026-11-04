@@ -1,34 +1,45 @@
-import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
-function initFirebaseAdmin() {
-  if (getApps().length > 0) {
-    return getApp();
-  }
+const FIREBASE_JWKS = createRemoteJWKSet(
+  new URL(
+    "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
+  )
+);
 
-  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-  const rawKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
-  const privateKey = rawKey
-    ?.replace(/^"|"$/g, "")
-    ?.replace(/\\n/g, "\n");
-
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      "Missing Firebase Admin credentials (FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, FIREBASE_ADMIN_PRIVATE_KEY)."
-    );
-  }
-
-  return initializeApp({
-    credential: cert({
-      projectId,
-      clientEmail,
-      privateKey,
-    }),
-  });
+export interface VerifiedFirebaseToken {
+  uid: string;
+  email?: string;
+  name?: string;
+  picture?: string;
 }
 
-export async function verifyFirebaseIdToken(idToken: string) {
-  const app = initFirebaseAdmin();
-  return getAuth(app).verifyIdToken(idToken);
+/**
+ * Verifies a Firebase ID token using Google's official public JWKS endpoint via `jose`.
+ * Avoids importing `firebase-admin` (an external ESM package that triggers Next.js 16
+ * Turbopack's `Invariant: The lazy module is still loading` crash on serverless routes).
+ */
+export async function verifyFirebaseIdToken(
+  idToken: string
+): Promise<VerifiedFirebaseToken> {
+  const projectId =
+    process.env.FIREBASE_ADMIN_PROJECT_ID ||
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    "dripplug";
+
+  const { payload } = await jwtVerify(idToken, FIREBASE_JWKS, {
+    issuer: `https://securetoken.google.com/${projectId}`,
+    audience: projectId,
+  });
+
+  const uid = String(payload.sub || payload.user_id || "");
+  if (!uid) {
+    throw new Error("Invalid Firebase ID token: missing subject (uid).");
+  }
+
+  return {
+    uid,
+    email: typeof payload.email === "string" ? payload.email : undefined,
+    name: typeof payload.name === "string" ? payload.name : undefined,
+    picture: typeof payload.picture === "string" ? payload.picture : undefined,
+  };
 }
