@@ -13,6 +13,7 @@ import {
   SOCIAL_LINKS,
 } from "@/config/site";
 import { useToastStore } from "@/store/toast";
+import Image from "next/image";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -170,14 +171,7 @@ export function Footer() {
           </p>
 
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-border px-3 py-1.5 text-[11px] font-semibold text-black shadow-2xs">
-              <Lock className="w-3.5 h-3.5 text-success" />
-              Secured by Paystack
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-white border border-border px-2.5 py-1.5 text-[11px] font-medium text-black">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              NGN (₦)
-            </span>
+            <Image src={"/paystack.png"}  alt="Paystack" width={100} height={100} />
           </div>
         </div>
       </div>

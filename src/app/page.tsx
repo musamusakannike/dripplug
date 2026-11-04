@@ -10,8 +10,43 @@ import {
 import { getHomePageData } from "@/lib/catalog";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ReviewsCarousel } from "@/components/product/ReviewsCarousel";
+import { Marquee } from "@/components/ui/Marquee";
 
 export const revalidate = 60;
+
+function ArrowIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function SectionHeader({ title, href }: { title: string; href: string }) {
+  return (
+    <div className="mb-8 flex items-end justify-between gap-4 md:mb-10">
+      <h2 className="font-heading text-3xl uppercase leading-none tracking-tight sm:text-4xl md:text-5xl">
+        {title}
+      </h2>
+      <Link
+        href={href}
+        className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+      >
+        View all
+        <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+      </Link>
+    </div>
+  );
+}
 
 export default async function HomePage() {
   const { newArrivals, topSelling, totalProductsInStock, verifiedReviews } =
@@ -19,163 +54,150 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* 1. Light-Grey Hero Section (Matches Shop.co reference layout, NO Sparkles icons) */}
-      <section className="bg-surface overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14 pb-0 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Copy & Real Stats */}
-          <div className="lg:col-span-7 pb-8 lg:pb-14">
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-[58px] uppercase leading-[1.02] tracking-tight text-black">
+      {/* 1. HERO */}
+      <section className="relative overflow-hidden bg-surface">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 sm:px-6 md:pt-16 lg:grid-cols-12 lg:gap-6 lg:px-8 lg:pb-20">
+          {/* Copy */}
+          <div className="lg:col-span-7 lg:pr-6">
+            <h1
+              className="animate-rise mt-5 font-heading text-[2.75rem] uppercase leading-[0.98] tracking-tight text-black motion-reduce:animate-none sm:text-6xl lg:text-[76px]"
+              style={{ animationDelay: "90ms" }}
+            >
               {HERO_CONFIG.headline}
             </h1>
-            <p className="text-sm sm:text-base text-muted mt-4 max-w-xl leading-relaxed">
+
+            <p
+              className="animate-rise mt-5 max-w-lg text-base leading-relaxed text-muted motion-reduce:animate-none sm:text-lg"
+              style={{ animationDelay: "180ms" }}
+            >
               {HERO_CONFIG.subtext}
             </p>
 
-            <div className="mt-7">
+            <div
+              className="animate-rise mt-8 flex flex-col gap-3 motion-reduce:animate-none sm:flex-row sm:items-center"
+              style={{ animationDelay: "270ms" }}
+            >
               <Link
                 href={HERO_CONFIG.ctaHref}
-                className="w-full sm:w-auto min-w-[200px] h-13 px-10 rounded-full bg-black text-white font-semibold text-sm inline-flex items-center justify-center hover:bg-black/90 transition-colors"
+                className="group inline-flex h-14 min-w-[220px] items-center justify-center gap-2 rounded-full bg-black px-10 text-sm font-semibold text-white transition-colors hover:bg-black/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               >
                 {HERO_CONFIG.ctaText}
+                <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
-            </div>
-
-            {/* 3 Real / Configurable Stat Blocks (Never fake customer numbers) */}
-            <div className="mt-9 pt-6 border-t border-border/80 grid grid-cols-3 gap-4 sm:gap-8 max-w-lg">
-              <div>
-                <p className="font-bold text-2xl sm:text-3xl text-black">
-                  {totalProductsInStock}+
-                </p>
-                <p className="text-[11px] sm:text-xs text-muted mt-0.5">
-                  Verified Fits in Stock
-                </p>
-              </div>
-              <div className="border-l border-border pl-4 sm:pl-8">
-                <p className="font-bold text-2xl sm:text-3xl text-black">
-                  {DELIVERY_POINTS.length}
-                </p>
-                <p className="text-[11px] sm:text-xs text-muted mt-0.5">
-                  Campus Drop-Off Points
-                </p>
-              </div>
-              <div className="border-l border-border pl-4 sm:pl-8">
-                <p className="font-bold text-2xl sm:text-3xl text-black">
-                  {HERO_CONFIG.typicalDeliveryStat}
-                </p>
-                <p className="text-[11px] sm:text-xs text-muted mt-0.5">
-                  {HERO_CONFIG.typicalDeliveryLabel}
-                </p>
-              </div>
+              <Link
+                href="#categories"
+                className="inline-flex h-14 items-center justify-center rounded-full px-6 text-sm font-semibold text-black underline-offset-4 hover:underline"
+              >
+                Browse categories
+              </Link>
             </div>
           </div>
 
-          {/* Right Hero Image */}
-          <div className="lg:col-span-5 relative h-[360px] sm:h-[440px] lg:h-[520px] w-full rounded-t-[28px] overflow-hidden">
-            <Image
-              src={HERO_CONFIG.image}
-              alt={HERO_CONFIG.imageAlt}
-              fill
-              priority
-              fetchPriority="high"
-              sizes="(max-width: 1024px) 100vw, 42vw"
-              className="object-cover object-top"
+          {/* Image composition */}
+          <div
+            className="animate-rise relative mx-auto w-full max-w-md motion-reduce:animate-none lg:col-span-5 lg:max-w-none"
+            style={{ animationDelay: "200ms" }}
+          >
+            {/* offset block for depth */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 translate-x-3 translate-y-3 rounded-[36px] bg-black sm:translate-x-4 sm:translate-y-4"
             />
+            <div className="relative h-[400px] w-full overflow-hidden rounded-[36px] bg-white sm:h-[480px] lg:h-[540px]">
+              <Image
+                src={HERO_CONFIG.image}
+                alt={HERO_CONFIG.imageAlt}
+                fill
+                priority
+                fetchPriority="high"
+                sizes="(max-width: 1024px) 90vw, 40vw"
+                className="object-cover object-top"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent" />
+            </div>
+
+            {/* Floating facts (real, configurable values only) */}
+            <div className="absolute -left-2 bottom-8 rounded-2xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:-left-6">
+              <p className="font-heading text-2xl leading-none text-black">
+                {HERO_CONFIG.typicalDeliveryStat}
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                {HERO_CONFIG.typicalDeliveryLabel}
+              </p>
+            </div>
+            <div className="absolute -right-1 top-8 rounded-2xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:-right-5">
+              <p className="font-heading text-2xl leading-none text-black">
+                {DELIVERY_POINTS.length}
+              </p>
+              <p className="mt-1 text-xs text-muted">Campus drop-off points</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 2. Black Full-Width Trust & Category Strip */}
-      <div className="bg-black text-white py-5 px-4 overflow-x-auto">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 sm:gap-10 min-w-max">
-          {TRUST_STRIP_ITEMS.map((item) => (
-            <span
-              key={item}
-              className="font-heading text-xs sm:text-sm md:text-base uppercase tracking-wider text-white/95"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
+      {/* 2. INFINITE MARQUEE */}
+      <div className="bg-black py-5 text-white">
+        <Marquee items={TRUST_STRIP_ITEMS} duration={32} />
       </div>
 
-      {/* 3. NEW ARRIVALS Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-12 border-b border-border">
-        <h2 className="font-heading text-3xl sm:text-4xl uppercase tracking-tight text-center mb-8 md:mb-10">
-          NEW ARRIVALS
-        </h2>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* 3. NEW ARRIVALS */}
+      <section className="mx-auto max-w-7xl border-b border-border px-4 pb-14 pt-16 sm:px-6 lg:px-8">
+        <SectionHeader title="New arrivals" href="/shop?sort=newest" />
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
           {newArrivals.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
-
-        <div className="mt-9 text-center">
-          <Link
-            href="/shop?sort=newest"
-            className="inline-flex items-center justify-center w-full sm:w-52 h-12 rounded-full border border-border text-sm font-semibold text-black hover:bg-surface transition-colors"
-          >
-            View All
-          </Link>
-        </div>
       </section>
 
-      {/* 4. TOP SELLING Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <h2 className="font-heading text-3xl sm:text-4xl uppercase tracking-tight text-center mb-8 md:mb-10">
-          TOP SELLING
-        </h2>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* 4. TOP SELLING */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <SectionHeader title="Top selling" href="/shop?sort=popular" />
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
           {topSelling.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
-
-        <div className="mt-9 text-center">
-          <Link
-            href="/shop?sort=popular"
-            className="inline-flex items-center justify-center w-full sm:w-52 h-12 rounded-full border border-border text-sm font-semibold text-black hover:bg-surface transition-colors"
-          >
-            View All
-          </Link>
-        </div>
       </section>
 
-      {/* 5. BROWSE BY CATEGORY Bento Block (Matches Shop.co "BROWSE BY DRESS STYLE") */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="rounded-[28px] bg-surface px-5 py-10 sm:px-10 md:px-14 md:py-14">
-          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight text-center mb-8 md:mb-10">
-            BROWSE BY CATEGORY
+      {/* 5. BROWSE BY CATEGORY */}
+      <section
+        id="categories"
+        className="mx-auto max-w-7xl scroll-mt-20 px-4 py-4 sm:px-6 lg:px-8"
+      >
+        <div className="rounded-[32px] bg-surface px-5 py-10 sm:px-10 md:px-14 md:py-14">
+          <h2 className="mb-8 font-heading text-3xl uppercase leading-none tracking-tight md:mb-10 md:text-5xl">
+            Browse by category
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-12">
             {HOME_CATEGORY_TILES.map((tile) => (
               <Link
                 key={tile.slug}
                 href={`/category/${tile.slug}`}
-                className={`group relative h-52 sm:h-64 rounded-[20px] bg-white overflow-hidden p-6 flex flex-col justify-between shadow-2xs ${
+                className={`group relative flex h-56 flex-col justify-between overflow-hidden rounded-[24px] bg-white p-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:h-72 ${
                   tile.colSpan === "wide" ? "md:col-span-7" : "md:col-span-5"
                 }`}
               >
                 <Image
                   src={tile.image}
-                  alt={tile.name}
+                  alt=""
                   fill
                   sizes="(max-width: 768px) 100vw, 55vw"
-                  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover object-center transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/65 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-transparent" />
 
-                <div className="relative z-10 max-w-[220px]">
-                  <h3 className="font-bold text-xl sm:text-2xl text-black">
+                <div className="relative z-10 max-w-[240px]">
+                  <h3 className="text-2xl font-bold text-black sm:text-3xl">
                     {tile.name}
                   </h3>
-                  <p className="text-xs text-muted mt-1">{tile.description}</p>
+                  <p className="mt-1.5 text-sm text-muted">{tile.description}</p>
                 </div>
 
-                <span className="relative z-10 inline-flex items-center text-xs font-bold uppercase tracking-wider text-black group-hover:underline">
-                  Shop {tile.name} &rarr;
+                <span className="relative z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black text-white transition-transform group-hover:translate-x-1">
+                  <ArrowIcon className="h-5 w-5" />
+                  <span className="sr-only">Shop {tile.name}</span>
                 </span>
               </Link>
             ))}
@@ -183,7 +205,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 6. WHAT STUDENTS SAY Verified Reviews Carousel */}
+      {/* 6. REVIEWS */}
       <ReviewsCarousel reviews={verifiedReviews} />
     </div>
   );
