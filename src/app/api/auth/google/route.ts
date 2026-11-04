@@ -7,7 +7,10 @@ export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
   const redirectPath = req.nextUrl.searchParams.get("redirect") || "/";
   const origin = req.nextUrl.origin;
-  const callbackUrl = `${origin}/api/auth/google/callback`;
+  // Google requires the redirect_uri to exactly match a URI registered in the
+  // Google Cloud Console. Derive it from the canonical app URL so host
+  // variations (www vs non-www) can never cause a redirect_uri_mismatch.
+  const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/api/auth/google/callback`;
 
   const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   googleAuthUrl.searchParams.set("client_id", clientId);

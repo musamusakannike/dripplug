@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
   try {
     const clientId = process.env.GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET || "";
-    const callbackUrl = `${origin}/api/auth/google/callback`;
+    // Must exactly match the redirect_uri sent to Google in the auth request
+    // (see src/app/api/auth/google/route.ts) and the URI registered in the
+    // Google Cloud Console, regardless of which host the user browsed on.
+    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/api/auth/google/callback`;
 
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
