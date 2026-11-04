@@ -9,7 +9,8 @@ export interface ISavedAddress {
 }
 
 export interface IUser extends Document {
-  firebaseUid: string;
+  firebaseUid?: string;
+  password?: string;
   name: string;
   email: string;
   phone: string;
@@ -33,7 +34,8 @@ const SavedAddressSchema = new Schema<ISavedAddress>(
 
 const UserSchema = new Schema<IUser>(
   {
-    firebaseUid: { type: String, required: true, unique: true, index: true },
+    firebaseUid: { type: String, sparse: true, unique: true, index: true },
+    password: { type: String, select: false },
     name: { type: String, default: "", trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     phone: { type: String, default: "", trim: true },

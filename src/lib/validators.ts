@@ -4,8 +4,11 @@ import { DELIVERY_POINTS, ORDER_STATUSES } from "@/config/site";
 const deliveryPointIds = DELIVERY_POINTS.map((p) => p.id) as [string, ...string[]];
 
 export const authSessionSchema = z.object({
-  idToken: z.string().min(10, "Valid Firebase ID token is required"),
+  idToken: z.string().min(10, "Valid Firebase ID token is required").optional(),
+  mode: z.enum(["signin", "signup", "google"]).optional(),
   name: z.string().trim().max(100).optional(),
+  email: z.string().trim().email("Enter a valid email address").optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").max(128).optional(),
 });
 
 export const cartItemInputSchema = z.object({

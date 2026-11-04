@@ -1,8 +1,24 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { SessionUser } from "@/types";
 import { connectDB, isDatabaseConfigured } from "@/lib/db";
 import { User } from "@/models/User";
+
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const derivedKey = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${derivedKey}`;
+}
+
+export function verifyPassword(password: string, storedHash: string): boolean {
+  const [salt, key] = storedHash.split(":");
+  if (!salt || !key) return false;
+  const keyBuffer = Buffer.from(key, "hex");
+  const derivedBuffer = scryptSync(password, salt, 64);
+  if (keyBuffer.length !== derivedBuffer.length) return false;
+  return timingSafeEqual(keyBuffer, derivedBuffer);
+}
 
 /**
  * SESSION ARCHITECTURE CHOICE:
@@ -100,7 +116,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       if (dbUser) {
         return {
           id: String(dbUser._id),
-          firebaseUid: dbUser.firebaseUid,
+          firebaseUid: dbUser.firebaseUid || "",
           name: dbUser.name,
           email: dbUser.email,
           phone: dbUser.phone || "",

@@ -1,14 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { APP_NAME, Logo } from "@/config/site";
-import {
-  loginWithEmail,
-  loginWithGoogle,
-  registerWithEmail,
-} from "@/lib/firebase-client";
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
 import { useToastStore } from "@/store/toast";
@@ -16,30 +11,6 @@ import { useToastStore } from "@/store/toast";
 interface AuthFormProps {
   redirectTo?: string;
   onSuccess?: () => void;
-}
-
-function formatAuthError(err: unknown): string {
-  if (typeof err === "object" && err !== null && "code" in err) {
-    const code = (err as { code: string }).code;
-    switch (code) {
-      case "auth/invalid-credential":
-      case "auth/wrong-password":
-        return "Invalid email or password. If you haven't created a password account, please click 'Create an account' below.";
-      case "auth/user-not-found":
-        return "No account found with this email. Click 'Create an account' below to sign up.";
-      case "auth/email-already-in-use":
-        return "An account with this email already exists. Click 'Sign in instead' below.";
-      case "auth/weak-password":
-        return "Password is too weak. Please use at least 6 characters.";
-      case "auth/popup-closed-by-user":
-        return "Sign-in popup was closed before completing.";
-      case "auth/cancelled-popup-request":
-        return "Another sign-in request is in progress.";
-      default:
-        break;
-    }
-  }
-  return err instanceof Error ? err.message : "Authentication failed. Check your credentials.";
 }
 
 export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
@@ -52,39 +23,15 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const setUser = useAuthStore((s) => s.setUser);
+  const login = useAuthStore((s) => s.login);
+  const register = useAuthStore((s) => s.register);
+  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle);
   const syncWithServer = useCartStore((s) => s.syncWithServer);
   const addToast = useToastStore((s) => s.addToast);
 
-  async function establishServerSession(idToken: string, displayName?: string) {
-    const res = await fetch("/api/auth/session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken, name: displayName }),
-    });
-
-    let json: { ok?: boolean; error?: string; data?: { user: any } } | null = null;
-    const rawText = await res.text();
-    if (rawText) {
-      try {
-        json = JSON.parse(rawText);
-      } catch {
-        // Fallback for non-JSON response
-      }
-    }
-
-    if (!res.ok || !json?.ok || !json?.data?.user) {
-      const errorMsg =
-        json?.error ||
-        (rawText && rawText.length < 200
-          ? rawText
-          : `Server returned ${res.status} ${res.statusText || "error"}.`);
-      throw new Error(errorMsg);
-    }
-
-    setUser(json.data.user);
+  async function completeLogin(userName: string) {
     await syncWithServer();
-    addToast(`Welcome to ${APP_NAME}, ${json.data.user.name}!`, "success");
+    addToast(`Welcome to ${APP_NAME}, ${userName}!`, "success");
 
     if (onSuccess) {
       onSuccess();
@@ -100,35 +47,31 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
   async function handleGoogleAuth() {
     setError(null);
     setLoading(true);
-    try {
-      const res = await loginWithGoogle();
-      if (res) {
-        await establishServerSession(res.idToken, res.user.displayName || undefined);
-      }
-    } catch (err: unknown) {
-      setError(formatAuthError(err));
-    } finally {
-      setLoading(false);
+    const result = await loginWithGoogle();
+    if (result.success && result.user) {
+      await completeLogin(result.user.name);
+    } else {
+      setError(result.error || "Google sign-in failed. Please try again.");
     }
+    setLoading(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    try {
-      if (mode === "signup") {
-        const res = await registerWithEmail(name, email, password);
-        await establishServerSession(res.idToken, name);
-      } else {
-        const res = await loginWithEmail(email, password);
-        await establishServerSession(res.idToken);
-      }
-    } catch (err: unknown) {
-      setError(formatAuthError(err));
-    } finally {
-      setLoading(false);
+
+    const result =
+      mode === "signup"
+        ? await register({ name, email, password })
+        : await login(email, password);
+
+    if (result.success && result.user) {
+      await completeLogin(result.user.name);
+    } else {
+      setError(result.error || "Authentication failed. Please try again.");
     }
+    setLoading(false);
   }
 
   return (
@@ -304,7 +247,10 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
             New to {APP_NAME}?{" "}
             <button
               type="button"
-              onClick={() => setMode("signup")}
+              onClick={() => {
+                setError(null);
+                setMode("signup");
+              }}
               className="text-black font-semibold underline underline-offset-4 cursor-pointer"
             >
               Create an account
@@ -315,7 +261,10 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
             Already have an account?{" "}
             <button
               type="button"
-              onClick={() => setMode("signin")}
+              onClick={() => {
+                setError(null);
+                setMode("signin");
+              }}
               className="text-black font-semibold underline underline-offset-4 cursor-pointer"
             >
               Sign in instead
@@ -327,48 +276,48 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
   );
 }
 
-/**
- * Native <dialog> modal opened via showModal() so screen readers and focus containment
- * work natively without brittle DOM focus traps.
- */
 export function AuthModal() {
   const isOpen = useAuthStore((s) => s.isOpen);
   const redirectAfterLogin = useAuthStore((s) => s.redirectAfterLogin);
   const closeAuthModal = useAuthStore((s) => s.closeAuthModal);
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (isOpen && !dialog.open) {
-      dialog.showModal();
-    } else if (!isOpen && dialog.open) {
-      dialog.close();
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") closeAuthModal();
     }
-  }, [isOpen]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, closeAuthModal]);
+
+  if (!isOpen) return null;
 
   return (
-    <dialog
-      ref={dialogRef}
+    <div
+      role="dialog"
+      aria-modal="true"
       aria-labelledby="auth-dialog-title"
-      onClose={closeAuthModal}
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-[24px] bg-white p-6 md:p-8 shadow-2xl border border-border text-black"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeAuthModal();
+      }}
     >
-      <div className="flex justify-end -mt-2 -mr-2">
-        <button
-          type="button"
-          onClick={closeAuthModal}
-          aria-label="Close sign in dialog"
-          className="p-2 rounded-full hover:bg-surface transition-colors cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
+      <div className="w-full max-w-md rounded-[24px] bg-white p-6 md:p-8 shadow-2xl border border-border text-black">
+        <div className="flex justify-end -mt-2 -mr-2">
+          <button
+            type="button"
+            onClick={closeAuthModal}
+            aria-label="Close sign in dialog"
+            className="p-2 rounded-full hover:bg-surface transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <AuthForm
+          redirectTo={redirectAfterLogin || undefined}
+          onSuccess={closeAuthModal}
+        />
       </div>
-      <AuthForm
-        redirectTo={redirectAfterLogin || undefined}
-        onSuccess={closeAuthModal}
-      />
-    </dialog>
+    </div>
   );
 }
