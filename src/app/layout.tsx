@@ -52,11 +52,20 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
     title: `${APP_NAME} — Campus Fashion Store for UNILORIN Students`,
     description: APP_DESCRIPTION,
+    images: [
+      {
+        url: "/og.png",
+        width: 1734,
+        height: 907,
+        alt: `${APP_NAME} — Campus fashion. Delivered.`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${APP_NAME} — Campus Fashion Store for UNILORIN Students`,
     description: APP_DESCRIPTION,
+    images: ["/og.png"],
   },
 };
 
