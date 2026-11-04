@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
-import { Archivo_Black, Inter } from "next/font/google";
+import { Archivo_Black, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import {
   APP_DESCRIPTION,
@@ -33,6 +33,11 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
 });
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: [ '400', '500', '600', '700' ]
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -117,7 +122,7 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${archivoBlack.variable} ${inter.variable}`}>
+    <html lang="en" className={`${archivoBlack.variable} ${poppins.className}`}>
       <body className="min-h-screen flex flex-col bg-white text-black">
         <script
           type="application/ld+json"
