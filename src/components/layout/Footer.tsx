@@ -107,36 +107,60 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on X`}
-                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
               >
-                <span className="text-xs font-bold">X</span>
+                <Image
+                  src="/twitter.png"
+                  alt="X (Twitter)"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 object-contain"
+                />
               </a>
               <a
                 href={SOCIAL_LINKS.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on Instagram`}
-                className="w-9 h-9 rounded-full bg-black text-white border border-black flex items-center justify-center hover:opacity-80 transition-opacity"
+                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
               >
-                <span className="text-xs font-bold">IG</span>
+                <Image
+                  src="/instagram.png"
+                  alt="Instagram"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 object-contain"
+                />
               </a>
               <a
                 href={SOCIAL_LINKS.tiktok}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on TikTok`}
-                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
               >
-                <span className="text-xs font-bold">TT</span>
+                <Image
+                  src="/tiktok.png"
+                  alt="TikTok"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 object-contain"
+                />
               </a>
               <a
                 href={SOCIAL_LINKS.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on WhatsApp`}
-                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
               >
-                <MessageCircle className="w-4 h-4" />
+                <Image
+                  src="/whatsapp.png"
+                  alt="WhatsApp"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 object-contain"
+                />
               </a>
             </div>
           </div>

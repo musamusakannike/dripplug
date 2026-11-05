@@ -16,9 +16,9 @@ export const CAMPUS_SHORT_NAME = "UNILORIN";
 export const CAMPUS_CITY = "Ilorin, Kwara State, Nigeria";
 
 export const SOCIAL_LINKS = {
-  instagram: "https://instagram.com/dripplug.ng",
-  x: "https://x.com/dripplug_ng",
-  tiktok: "https://tiktok.com/@dripplug.ng",
+  instagram: "https://instagram.com/dripplug.com.ng",
+  x: "https://x.com/dripplug.com.ng",
+  tiktok: "https://tiktok.com/@dripplug.com.ng",
   whatsapp: `https://wa.me/${WHATSAPP_NUMBER}`,
 } as const;
 
