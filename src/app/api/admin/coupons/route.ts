@@ -32,6 +32,47 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
+      return apiError("Admin access required.", 403);
+    }
+
+    await connectDB();
+    const body = await req.json();
+    const { id, ...rest } = body;
+    if (!id) {
+      return apiError("Coupon ID required.", 400);
+    }
+
+    const existing = await Coupon.findById(id);
+    if (!existing) {
+      return apiError("Coupon not found.", 404);
+    }
+
+    if (typeof rest.isActive === "boolean" && Object.keys(rest).length === 1) {
+      existing.isActive = rest.isActive;
+      await existing.save();
+      return apiSuccess({ coupon: existing });
+    }
+
+    const parsed = adminCouponSchema.parse(rest);
+    existing.code = parsed.code.toUpperCase();
+    existing.type = parsed.type;
+    existing.value = parsed.value;
+    existing.minOrder = parsed.minOrder;
+    existing.expiry = new Date(parsed.expiry);
+    existing.usageLimit = parsed.usageLimit;
+    existing.isActive = parsed.isActive;
+    await existing.save();
+
+    return apiSuccess({ coupon: existing });
+  } catch (err) {
+    return handleApiException(err);
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const user = await getCurrentUser();

@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { ANNOUNCEMENT_BAR } from "@/config/site";
 import { useHydrated } from "@/hooks/useHydrated";
 
 export function AnnouncementBar() {
+  const pathname = usePathname();
   const hydrated = useHydrated();
   const [dismissedInSession, setDismissedInSession] = useState(false);
 
@@ -15,7 +17,12 @@ export function AnnouncementBar() {
     typeof window !== "undefined" &&
     window.localStorage.getItem(ANNOUNCEMENT_BAR.storageKey) === "true";
 
-  if (!ANNOUNCEMENT_BAR.enabled || dismissedInSession || isStoredDismissed) {
+  if (
+    pathname?.startsWith("/admin") ||
+    !ANNOUNCEMENT_BAR.enabled ||
+    dismissedInSession ||
+    isStoredDismissed
+  ) {
     return null;
   }
 

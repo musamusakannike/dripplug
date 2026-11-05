@@ -84,9 +84,14 @@ export async function PUT(req: NextRequest) {
       return apiError("Product not found.", 404);
     }
 
-    // Toggle active shortcut
-    if (typeof rest.isActive === "boolean" && Object.keys(rest).length === 1) {
-      existing.isActive = rest.isActive;
+    // Quick toggle shortcut (isActive and/or isFeatured without full schema payload)
+    const restKeys = Object.keys(rest);
+    if (
+      restKeys.length > 0 &&
+      restKeys.every((k) => k === "isActive" || k === "isFeatured")
+    ) {
+      if (typeof rest.isActive === "boolean") existing.isActive = rest.isActive;
+      if (typeof rest.isFeatured === "boolean") existing.isFeatured = rest.isFeatured;
       await existing.save();
       revalidatePath("/");
       revalidatePath("/shop");

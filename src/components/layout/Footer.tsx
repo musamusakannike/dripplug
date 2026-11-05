@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Mail, Lock, ShieldCheck, MessageCircle } from "lucide-react";
 import {
   APP_DESCRIPTION,
@@ -16,9 +17,14 @@ import { useToastStore } from "@/store/toast";
 import Image from "next/image";
 
 export function Footer() {
+  const pathname = usePathname();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const addToast = useToastStore((s) => s.addToast);
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   async function handleNewsletterSubmit(e: React.FormEvent) {
     e.preventDefault();

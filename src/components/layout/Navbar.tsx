@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -33,6 +33,7 @@ interface SearchSuggestion {
 
 export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
   const router = useRouter();
+  const pathname = usePathname();
   const hydrated = useHydrated();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -108,6 +109,10 @@ export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
   }
 
   const activeSuggestions = query.trim().length >= 2 ? suggestions : [];
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border">

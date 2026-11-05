@@ -14,7 +14,7 @@ import {
 } from "@/types";
 import { PAGINATION_LIMIT } from "@/config/site";
 
-function serializeProductDoc(doc: IProduct | Record<string, unknown>): SerializedProduct {
+export function serializeProductDoc(doc: IProduct | Record<string, unknown>): SerializedProduct {
   const d = doc as Record<string, unknown>;
   return {
     _id: String(d._id || `sample_${d.slug}`),

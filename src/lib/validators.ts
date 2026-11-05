@@ -176,8 +176,22 @@ export const adminProductSchema = z.object({
 });
 
 export const adminOrderStatusSchema = z.object({
-  status: z.enum(ORDER_STATUSES),
+  status: z.enum(ORDER_STATUSES).optional(),
+  paymentStatus: z
+    .enum(["unpaid", "paid", "failed", "refunded", "flagged_mismatch"])
+    .optional(),
   note: z.string().trim().max(300).optional(),
+  deliveryPointId: z.enum(deliveryPointIds).optional(),
+  deliveryAddress: z
+    .object({
+      customerName: z.string().trim().min(2).max(100),
+      phone: z.string().trim().min(7).max(20),
+      email: z.string().trim().email(),
+      hostel: z.string().trim().max(120).optional(),
+      room: z.string().trim().max(60).optional(),
+      landmark: z.string().trim().max(160).optional(),
+    })
+    .optional(),
 });
 
 export const adminCouponSchema = z.object({
@@ -188,4 +202,12 @@ export const adminCouponSchema = z.object({
   expiry: z.string().min(1),
   usageLimit: z.number().int().positive().default(100),
   isActive: z.boolean().default(true),
+});
+
+export const adminReviewUpdateSchema = z.object({
+  reviewId: z.string().min(1),
+  status: z.enum(["published", "hidden"]).optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  comment: z.string().trim().min(2).max(1000).optional(),
+  userName: z.string().trim().min(1).max(100).optional(),
 });

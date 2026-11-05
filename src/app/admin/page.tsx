@@ -4,14 +4,16 @@ import type { Metadata } from "next";
 import { APP_NAME } from "@/config/site";
 import { getCurrentUser } from "@/lib/auth";
 import { connectDB, isDatabaseConfigured } from "@/lib/db";
-import { getCategories, getFilteredCatalog } from "@/lib/catalog";
+import { getCategories, getFilteredCatalog, serializeProductDoc } from "@/lib/catalog";
+import { Product } from "@/models/Product";
 import { Order } from "@/models/Order";
 import { Coupon } from "@/models/Coupon";
 import { Review } from "@/models/Review";
 import { Newsletter } from "@/models/Newsletter";
+import { User } from "@/models/User";
 import { SAMPLE_VERIFIED_REVIEWS } from "@/lib/sample-data";
 import { AdminDashboardClient } from "@/components/admin/AdminDashboardClient";
-import { SerializedOrder, SerializedReview } from "@/types";
+import { SerializedOrder, SerializedProduct, SerializedReview } from "@/types";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -30,6 +32,7 @@ export default async function AdminPage() {
     getFilteredCatalog({ limit: 100 }),
   ]);
 
+  let products: SerializedProduct[] = catalog.products;
   let orders: SerializedOrder[] = [];
   let coupons: {
     _id: string;
@@ -44,16 +47,31 @@ export default async function AdminPage() {
   }[] = [];
   let reviews: SerializedReview[] = SAMPLE_VERIFIED_REVIEWS;
   let subscribers: { _id: string; email: string; subscribedAt: string }[] = [];
+  let users: {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+    role: "customer" | "admin";
+    createdAt: string;
+  }[] = [];
 
   if (isDatabaseConfigured()) {
     try {
       await connectDB();
-      const [orderDocs, couponDocs, reviewDocs, subDocs] = await Promise.all([
-        Order.find().sort({ createdAt: -1 }).limit(100).lean(),
-        Coupon.find().sort({ createdAt: -1 }).lean(),
-        Review.find().sort({ createdAt: -1 }).limit(50).lean(),
-        Newsletter.find().sort({ subscribedAt: -1 }).lean(),
-      ]);
+      const [allProductDocs, orderDocs, couponDocs, reviewDocs, subDocs, userDocs] =
+        await Promise.all([
+          Product.find().sort({ createdAt: -1 }).lean(),
+          Order.find().sort({ createdAt: -1 }).limit(200).lean(),
+          Coupon.find().sort({ createdAt: -1 }).lean(),
+          Review.find().sort({ createdAt: -1 }).limit(100).lean(),
+          Newsletter.find().sort({ subscribedAt: -1 }).lean(),
+          User.find().sort({ createdAt: -1 }).limit(200).lean(),
+        ]);
+
+      if (allProductDocs.length > 0) {
+        products = allProductDocs.map(serializeProductDoc);
+      }
 
       orders = orderDocs.map((o) => ({
         _id: String(o._id),
@@ -119,6 +137,15 @@ export default async function AdminPage() {
         email: s.email,
         subscribedAt: new Date(s.subscribedAt).toISOString(),
       }));
+
+      users = userDocs.map((u) => ({
+        _id: String(u._id),
+        name: u.name || "",
+        email: u.email,
+        phone: u.phone || "",
+        role: u.role,
+        createdAt: new Date(u.createdAt).toISOString(),
+      }));
     } catch {
       // Fallback to sample state
     }
@@ -126,12 +153,14 @@ export default async function AdminPage() {
 
   return (
     <AdminDashboardClient
-      initialProducts={catalog.products}
+      currentUser={user}
+      initialProducts={products}
       initialCategories={categories}
       initialOrders={orders}
       initialCoupons={coupons}
       initialReviews={reviews}
       initialSubscribers={subscribers}
+      initialUsers={users}
     />
   );
 }
