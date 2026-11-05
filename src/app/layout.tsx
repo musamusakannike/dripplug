@@ -20,6 +20,7 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import { Analytics } from "@vercel/analytics/next";
 
 const archivoBlack = Archivo_Black({
   weight: "400",
@@ -138,6 +139,7 @@ export default async function RootLayout({
         <CartDrawer />
         <AuthModal />
         <ToastContainer />
+        <Analytics />
       </body>
     </html>
   );
