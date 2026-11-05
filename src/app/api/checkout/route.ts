@@ -70,8 +70,9 @@ export async function POST(req: NextRequest) {
       });
 
       if (!product) {
+        const displayName = reqItem.name || reqItem.slug.replace(/-/g, " ");
         return apiError(
-          `Product "${reqItem.slug}" is no longer available.`,
+          `Product "${displayName}" is no longer available.`,
           400
         );
       }

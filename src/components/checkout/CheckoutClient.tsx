@@ -125,6 +125,7 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
           items: items.map((i) => ({
             productId: i.productId,
             slug: i.slug,
+            name: i.name,
             size: i.size,
             color: i.color,
             quantity: i.quantity,

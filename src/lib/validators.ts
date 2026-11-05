@@ -47,6 +47,7 @@ export const checkoutInputSchema = z
         z.object({
           productId: z.string().min(1),
           slug: z.string().min(1),
+          name: z.string().optional(),
           size: z.string().min(1),
           color: z.string().min(1),
           quantity: z.number().int().min(1).max(20),
