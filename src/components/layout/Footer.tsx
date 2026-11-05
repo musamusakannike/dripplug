@@ -114,7 +114,7 @@ export function Footer() {
                   alt="X (Twitter)"
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="w-full h-full object-contain"
                 />
               </a>
               <a
@@ -129,7 +129,7 @@ export function Footer() {
                   alt="Instagram"
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="w-full h-full object-contain"
                 />
               </a>
               <a
@@ -144,7 +144,7 @@ export function Footer() {
                   alt="TikTok"
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="w-full h-full object-contain"
                 />
               </a>
               <a
@@ -159,7 +159,7 @@ export function Footer() {
                   alt="WhatsApp"
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="w-full h-full object-contain"
                 />
               </a>
             </div>
