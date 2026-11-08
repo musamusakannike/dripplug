@@ -158,7 +158,7 @@ export function ProductCard({ product }: { product: SerializedProduct }) {
 
       <Link
         href={`/product/${product.slug}`}
-        className="font-bold text-sm sm:text-base text-black hover:underline line-clamp-1"
+        className="font-medium lg:font-semibold text-sm sm:text-base text-black hover:underline line-clamp-1"
       >
         {product.name}
       </Link>
@@ -168,17 +168,17 @@ export function ProductCard({ product }: { product: SerializedProduct }) {
       </div>
 
       <div className="mt-1.5 flex items-center flex-wrap gap-2">
-        <span className="font-bold text-base sm:text-lg text-black">
+        <span className="font-semibold text-base sm:text-lg text-black">
           {formatPrice(product.basePrice)}
         </span>
 
         {product.compareAtPrice && product.compareAtPrice > product.basePrice && (
           <>
-            <span className="text-sm sm:text-base text-muted-light line-through font-semibold">
+            <span className="text-sm sm:text-base text-muted-light line-through font-normal">
               {formatPrice(product.compareAtPrice)}
             </span>
             {discountPercent > 0 && (
-              <span className="rounded-full bg-danger-bg text-danger text-[11px] font-semibold px-2.5 py-0.5">
+              <span className="rounded-full bg-danger-bg text-danger text-[11px] font-normal px-2.5 py-0.5">
                 -{discountPercent}%
               </span>
             )}

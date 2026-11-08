@@ -146,7 +146,7 @@ export interface HomeCategoryTile {
   slug: string;
   description: string;
   image: string;
-  colSpan: "narrow" | "wide";
+  hasBakedText?: boolean;
 }
 
 export const HOME_CATEGORY_TILES: readonly HomeCategoryTile[] = [
@@ -154,33 +154,29 @@ export const HOME_CATEGORY_TILES: readonly HomeCategoryTile[] = [
     name: "Jerseys",
     slug: "jerseys",
     description: "Retro & club kits, custom campus jerseys",
-    image:
-      "https://images.unsplash.com/photo-1577212017184-80cc0da11082?auto=format&fit=crop&w=900&q=80",
-    colSpan: "narrow",
+    image: "/categories/jerseys.webp",
+    hasBakedText: true,
   },
   {
     name: "Baggy Jeans",
     slug: "baggy-jeans",
     description: "Wide-leg, carpenter & vintage wash denim",
-    image:
-      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=1000&q=80",
-    colSpan: "wide",
+    image: "/categories/baggy-jeans.webp",
+    hasBakedText: true,
   },
   {
     name: "Round Necks & Tees",
     slug: "t-shirts",
     description: "Heavyweight graphic tees & clean round necks",
-    image:
-      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80",
-    colSpan: "wide",
+    image: "/categories/round-necks.webp",
+    hasBakedText: false,
   },
   {
     name: "Hoodies & Joggers",
     slug: "hoodies",
     description: "Lecture-hall fleece hoodies & cargos",
-    image:
-      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=80",
-    colSpan: "narrow",
+    image: "/categories/joggers.webp",
+    hasBakedText: false,
   },
 ] as const;
 

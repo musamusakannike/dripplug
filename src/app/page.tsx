@@ -133,37 +133,97 @@ export default async function HomePage() {
             Browse by category
           </h2>
 
-          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-12">
-            {HOME_CATEGORY_TILES.map((tile) => (
+          {/* Bento Grid */}
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-12">
+            {/* 1. Tall Hero Tile (Jerseys) */}
+            {HOME_CATEGORY_TILES[0] && (
               <Link
-                key={tile.slug}
-                href={`/category/${tile.slug}`}
-                className={`group relative flex h-56 flex-col justify-between overflow-hidden rounded-[24px] bg-white p-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:h-72 ${
-                  tile.colSpan === "wide" ? "md:col-span-7" : "md:col-span-5"
-                }`}
+                key={HOME_CATEGORY_TILES[0].slug}
+                href={`/category/${HOME_CATEGORY_TILES[0].slug}`}
+                className="group relative flex min-h-[380px] flex-col justify-end overflow-hidden rounded-[24px] bg-[#eeecea] p-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:min-h-[480px] lg:col-span-5 lg:min-h-full"
               >
                 <Image
-                  src={tile.image}
-                  alt=""
+                  src={HOME_CATEGORY_TILES[0].image}
+                  alt={HOME_CATEGORY_TILES[0].name}
                   fill
-                  sizes="(max-width: 768px) 100vw, 55vw"
+                  sizes="(max-width: 1024px) 100vw, 42vw"
                   className="object-cover object-center transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-transparent" />
 
-                <div className="relative z-10 max-w-[240px]">
-                  <h3 className="text-2xl font-bold text-black sm:text-3xl">
-                    {tile.name}
-                  </h3>
-                  <p className="mt-1.5 text-sm text-muted">{tile.description}</p>
+                <div className="sr-only">
+                  <h3>{HOME_CATEGORY_TILES[0].name}</h3>
+                  <p>{HOME_CATEGORY_TILES[0].description}</p>
                 </div>
 
-                <span className="relative z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black text-white transition-transform group-hover:translate-x-1">
+                <span className="relative z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black text-white shadow-sm transition-transform group-hover:translate-x-1">
                   <ArrowIcon className="h-5 w-5" />
-                  <span className="sr-only">Shop {tile.name}</span>
+                  <span className="sr-only">Shop {HOME_CATEGORY_TILES[0].name}</span>
                 </span>
               </Link>
-            ))}
+            )}
+
+            {/* Right Column Stack */}
+            <div className="flex flex-col gap-4 sm:gap-5 lg:col-span-7">
+              {/* 2. Wide Banner Tile (Baggy Jeans) */}
+              {HOME_CATEGORY_TILES[1] && (
+                <Link
+                  key={HOME_CATEGORY_TILES[1].slug}
+                  href={`/category/${HOME_CATEGORY_TILES[1].slug}`}
+                  className="group relative flex h-60 flex-col justify-end overflow-hidden rounded-[24px] bg-[#eeecea] p-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:h-72"
+                >
+                  <Image
+                    src={HOME_CATEGORY_TILES[1].image}
+                    alt={HOME_CATEGORY_TILES[1].name}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 58vw"
+                    className="object-cover object-center transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none"
+                  />
+
+                  <div className="sr-only">
+                    <h3>{HOME_CATEGORY_TILES[1].name}</h3>
+                    <p>{HOME_CATEGORY_TILES[1].description}</p>
+                  </div>
+
+                  <span className="relative z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black text-white shadow-sm transition-transform group-hover:translate-x-1">
+                    <ArrowIcon className="h-5 w-5" />
+                    <span className="sr-only">Shop {HOME_CATEGORY_TILES[1].name}</span>
+                  </span>
+                </Link>
+              )}
+
+              {/* 3 & 4. Detail Tiles (Round Necks & Tees, Joggers - with on-card text) */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                {HOME_CATEGORY_TILES.slice(2).map((tile) => (
+                  <Link
+                    key={tile.slug}
+                    href={`/category/${tile.slug}`}
+                    className="group relative flex h-64 flex-col justify-between overflow-hidden rounded-[24px] bg-[#eeecea] p-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:h-72"
+                  >
+                    <Image
+                      src={tile.image}
+                      alt={tile.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 30vw"
+                      className="object-cover object-center transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none"
+                    />
+
+                    <div className="relative z-10">
+                      <h3 className="text-xl font-bold text-black sm:text-2xl">
+                        {tile.name}
+                      </h3>
+                      <p className="mt-1 text-xs text-neutral-600 sm:text-sm">
+                        {tile.description}
+                      </p>
+                    </div>
+
+                    <span className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black text-white shadow-sm transition-transform group-hover:translate-x-1">
+                      <ArrowIcon className="h-4 w-4" />
+                      <span className="sr-only">Shop {tile.name}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
