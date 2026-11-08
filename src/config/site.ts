@@ -184,6 +184,45 @@ export const HOME_CATEGORY_TILES: readonly HomeCategoryTile[] = [
   },
 ] as const;
 
+export interface HeroSlide {
+  image: string;
+  imageAlt: string;
+  tag?: string;
+}
+
+export const HERO_SLIDES: readonly HeroSlide[] = [
+  {
+    image:
+      "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Students wearing streetwear hoodies and graphic tees on campus",
+    tag: "Campus Streetwear",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1577212017184-80cc0da11082?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Retro club jerseys and vintage sportswear",
+    tag: "Retro Jerseys",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Oversized baggy cargo jeans and denim streetwear",
+    tag: "Baggy Denim",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Heavyweight campus hoodies and lecture-hall essentials",
+    tag: "Heavyweight Hoodies",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Heavyweight graphic round neck tees",
+    tag: "Graphic Tees",
+  },
+] as const;
+
 export const HERO_CONFIG = {
   headline: "FIND CAMPUS DRIP THAT MATCHES YOUR STYLE",
   subtext:
@@ -193,6 +232,7 @@ export const HERO_CONFIG = {
   image:
     "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1200&q=85",
   imageAlt: "Students wearing streetwear hoodies and graphic tees on campus",
+  slides: HERO_SLIDES,
   typicalDeliveryStat: "1–4 Hrs",
   typicalDeliveryLabel: "Campus Delivery Window",
 } as const;
@@ -204,7 +244,7 @@ export const TRUST_STRIP_ITEMS = [
   "JOGGERS",
   "HOODIES",
   "CAPS",
-  "PAY SECURELY WITH PAYSTACK",
+  "PAY SECURELY",
   "FREE OLD PARK DELIVERY",
 ] as const;
 

@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  DELIVERY_POINTS,
   HERO_CONFIG,
   HOME_CATEGORY_TILES,
   TRUST_STRIP_ITEMS,
@@ -11,6 +10,7 @@ import { getHomePageData } from "@/lib/catalog";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ReviewsCarousel } from "@/components/product/ReviewsCarousel";
 import { Marquee } from "@/components/ui/Marquee";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
 
 export const revalidate = 60;
 
@@ -93,51 +93,14 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Image composition */}
-          <div
-            className="animate-rise relative mx-auto w-full max-w-md motion-reduce:animate-none lg:col-span-5 lg:max-w-none"
-            style={{ animationDelay: "200ms" }}
-          >
-            {/* offset block for depth */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 translate-x-3 translate-y-3 rounded-[36px] bg-black sm:translate-x-4 sm:translate-y-4"
-            />
-            <div className="relative h-[400px] w-full overflow-hidden rounded-[36px] bg-white sm:h-[480px] lg:h-[540px]">
-              <Image
-                src={HERO_CONFIG.image}
-                alt={HERO_CONFIG.imageAlt}
-                fill
-                priority
-                fetchPriority="high"
-                sizes="(max-width: 1024px) 90vw, 40vw"
-                className="object-cover object-top"
-              />
-              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent" />
-            </div>
-
-            {/* Floating facts (real, configurable values only) */}
-            <div className="absolute -left-2 bottom-8 rounded-2xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:-left-6">
-              <p className="font-heading text-2xl leading-none text-black">
-                {HERO_CONFIG.typicalDeliveryStat}
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                {HERO_CONFIG.typicalDeliveryLabel}
-              </p>
-            </div>
-            <div className="absolute -right-1 top-8 rounded-2xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:-right-5">
-              <p className="font-heading text-2xl leading-none text-black">
-                {DELIVERY_POINTS.length}
-              </p>
-              <p className="mt-1 text-xs text-muted">Campus drop-off points</p>
-            </div>
-          </div>
+          {/* Hero image carousel */}
+          <HeroCarousel slides={HERO_CONFIG.slides} />
         </div>
       </section>
 
       {/* 2. INFINITE MARQUEE */}
       <div className="bg-black py-5 text-white">
-        <Marquee items={TRUST_STRIP_ITEMS} duration={32} />
+        <Marquee items={TRUST_STRIP_ITEMS} duration={80} />
       </div>
 
       {/* 3. NEW ARRIVALS */}
