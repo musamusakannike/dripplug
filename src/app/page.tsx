@@ -197,7 +197,7 @@ export default async function HomePage() {
                   <Link
                     key={tile.slug}
                     href={`/category/${tile.slug}`}
-                    className="group relative flex h-64 flex-col justify-between overflow-hidden rounded-[24px] bg-[#eeecea] p-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:h-72"
+                    className="group relative flex h-64 flex-col justify-end overflow-hidden rounded-[24px] bg-[#eeecea] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:h-72"
                   >
                     <Image
                       src={tile.image}
@@ -207,19 +207,29 @@ export default async function HomePage() {
                       className="object-cover object-center transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none"
                     />
 
-                    <div className="relative z-10">
-                      <h3 className="text-xl font-bold text-black sm:text-2xl">
-                        {tile.name}
-                      </h3>
-                      <p className="mt-1 text-xs text-neutral-600 sm:text-sm">
-                        {tile.description}
-                      </p>
+                    <div className="sr-only">
+                      <h3>{tile.name}</h3>
+                      <p>{tile.description}</p>
                     </div>
 
-                    <span className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black text-white shadow-sm transition-transform group-hover:translate-x-1">
-                      <ArrowIcon className="h-4 w-4" />
-                      <span className="sr-only">Shop {tile.name}</span>
-                    </span>
+                    {/* Non-transparent slide-in content on hover/focus */}
+                    <div className="relative z-10 w-full translate-y-full transform bg-white p-5 shadow-lg transition-transform duration-300 ease-out group-hover:translate-y-0 group-focus-visible:translate-y-0 motion-reduce:transition-none">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-lg font-bold text-black sm:text-xl">
+                            {tile.name}
+                          </h3>
+                          <p className="truncate text-xs text-muted sm:text-sm">
+                            {tile.description}
+                          </p>
+                        </div>
+
+                        <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-black text-white transition-transform group-hover:translate-x-0.5">
+                          <ArrowIcon className="h-4 w-4" />
+                          <span className="sr-only">Shop {tile.name}</span>
+                        </span>
+                      </div>
+                    </div>
                   </Link>
                 ))}
               </div>
