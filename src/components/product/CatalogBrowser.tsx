@@ -22,6 +22,7 @@ import {
 import { formatPrice } from "@/lib/format";
 import { SerializedCategory, SerializedProduct } from "@/types";
 import { ProductCard } from "@/components/product/ProductCard";
+import { ClubJerseyInquiry } from "@/components/product/ClubJerseyInquiry";
 
 interface CatalogBrowserProps {
   title: string;
@@ -538,6 +539,12 @@ export function CatalogBrowser({
                 </nav>
               )}
             </>
+          )}
+
+          {(activeCategorySlug === "jerseys" ||
+            products.length === 0 ||
+            Boolean(qParam)) && (
+            <ClubJerseyInquiry variant="catalog" initialQuery={qParam} />
           )}
         </div>
       </div>

@@ -9,8 +9,8 @@ export const APP_URL =
 export const APP_DOMAIN = "www.dripplug.com.ng";
 
 export const SUPPORT_EMAIL = "support@dripplug.com.ng";
-export const SUPPORT_PHONE = "+234 814 000 3747";
-export const WHATSAPP_NUMBER = "2348140003747";
+export const SUPPORT_PHONE = "+234 808 473 7618";
+export const WHATSAPP_NUMBER = "2348084737618";
 export const CAMPUS_NAME = "University of Ilorin (UNILORIN)";
 export const CAMPUS_SHORT_NAME = "UNILORIN";
 export const CAMPUS_CITY = "Ilorin, Kwara State, Nigeria";

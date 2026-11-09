@@ -17,6 +17,7 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { ToastContainer } from "@/components/ui/ToastContainer";
@@ -135,6 +136,7 @@ export default async function RootLayout({
           {children}
         </main>
         <Footer />
+        <WhatsAppFab />
         <MobileBottomNav />
         <CartDrawer />
         <AuthModal />

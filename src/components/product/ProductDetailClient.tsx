@@ -26,6 +26,7 @@ import {
 } from "@/lib/format";
 import { SerializedProduct, SerializedReview } from "@/types";
 import { StarRating, ProductCard } from "@/components/product/ProductCard";
+import { ClubJerseyInquiry } from "@/components/product/ClubJerseyInquiry";
 import { useCartStore } from "@/store/cart";
 import { useToastStore } from "@/store/toast";
 
@@ -316,7 +317,9 @@ export function ProductDetailClient({
                 const isSelected = c.name === selectedColor;
                 const isLight =
                   c.hex.toUpperCase() === "#FFFFFF" ||
-                  c.hex.toUpperCase() === "#D6C7B2";
+                  c.hex.toUpperCase() === "#D6C7B2" ||
+                  c.hex.toUpperCase() === "#FACC15" ||
+                  c.hex.toUpperCase() === "#6EE7B7";
                 return (
                   <button
                     key={c.name}
@@ -445,6 +448,10 @@ export function ProductDetailClient({
               </p>
             )}
           </div>
+
+          {product.categorySlug === "jerseys" && (
+            <ClubJerseyInquiry variant="product" defaultSize={selectedSize} />
+          )}
 
           {/* Campus Delivery Points Info Card */}
           <div className="mt-6 rounded-[20px] bg-surface p-4 space-y-2">
