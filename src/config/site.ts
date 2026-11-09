@@ -5,8 +5,8 @@ export const APP_TAGLINE = "FIND CAMPUS DRIP THAT MATCHES YOUR STYLE";
 export const APP_DESCRIPTION =
   "The #1 campus fashion store for University of Ilorin (UNILORIN) students. Shop jerseys, round neck tees, baggy jeans, joggers, hoodies, and caps with fast campus delivery to Old Park, New Park, and Hostels.";
 export const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://dripplug.com.ng";
-export const APP_DOMAIN = "dripplug.com.ng";
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://www.dripplug.com.ng";
+export const APP_DOMAIN = "www.dripplug.com.ng";
 
 export const SUPPORT_EMAIL = "support@dripplug.com.ng";
 export const SUPPORT_PHONE = "+234 814 000 3747";
@@ -16,9 +16,9 @@ export const CAMPUS_SHORT_NAME = "UNILORIN";
 export const CAMPUS_CITY = "Ilorin, Kwara State, Nigeria";
 
 export const SOCIAL_LINKS = {
-  instagram: "https://instagram.com/dripplug.com.ng",
-  x: "https://x.com/dripplug.com.ng",
-  tiktok: "https://tiktok.com/@dripplug.com.ng",
+  instagram: "https://instagram.com/dripplug.ng",
+  x: "https://x.com/dripplug_ng",
+  tiktok: "https://tiktok.com/@dripplug_ng",
   whatsapp: `https://wa.me/${WHATSAPP_NUMBER}`,
 } as const;
 
@@ -33,8 +33,8 @@ export const THEME = {
     surface: "#F0EEED", // Soft warm-grey for product tiles, inputs, hero, footer
     surfaceHover: "#E6E3E1",
     border: "#E5E5E5",
-    muted: "#666666",
-    mutedLight: "#999999",
+    muted: "#525252",
+    mutedLight: "#737373",
     danger: "#FF3333",
     dangerBg: "#FFEBEB",
     success: "#01AB31",
@@ -98,7 +98,7 @@ export const FREE_DELIVERY_THRESHOLD = {
 
 export const PAGINATION_LIMIT = 12;
 export const LOW_STOCK_THRESHOLD = 5;
-export const PENDING_ORDER_EXPIRY_MINUTES = 45;
+export const PENDING_ORDER_EXPIRY_MINUTES = 1440; // 24 hours
 
 export const ORDER_STATUSES = [
   "pending_payment",

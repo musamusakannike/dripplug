@@ -390,51 +390,60 @@ export function ProductDetailClient({
           </div>
 
           {/* Quantity Stepper Pill + Wide Black Add to Cart Pill */}
-          <div className="pt-6 flex items-center gap-4">
-            <div className="h-13 rounded-full bg-surface px-4 flex items-center gap-5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                aria-label="Decrease quantity"
-                className="p-1 text-black hover:opacity-70 cursor-pointer"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="font-semibold text-sm min-w-[20px] text-center">
-                {quantity}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setQuantity((q) =>
-                    Math.min(currentVariant?.stock || 10, q + 1)
-                  )
-                }
-                aria-label="Increase quantity"
-                className="p-1 text-black hover:opacity-70 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+          <div className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="h-13 rounded-full bg-surface px-4 flex items-center gap-5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  aria-label="Decrease quantity"
+                  className="p-1 text-black hover:opacity-70 cursor-pointer"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="font-semibold text-sm min-w-[20px] text-center">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuantity((q) => {
+                      const maxStock = currentVariant?.stock || 8;
+                      const cap = Math.min(8, maxStock);
+                      return Math.min(cap, q + 1);
+                    })
+                  }
+                  aria-label="Increase quantity"
+                  className="p-1 text-black hover:opacity-70 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
 
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.97 }}
-              disabled={isOutOfStock}
-              onClick={handleAddToCart}
-              className="flex-1 h-13 rounded-full bg-black text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-black/90 transition-colors disabled:opacity-40 cursor-pointer"
-            >
-              {addedState ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  Added to Cart
-                </>
-              ) : isOutOfStock ? (
-                "Out of Stock"
-              ) : (
-                "Add to Cart"
-              )}
-            </motion.button>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                disabled={isOutOfStock}
+                onClick={handleAddToCart}
+                className="flex-1 h-13 rounded-full bg-black text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-black/90 transition-colors disabled:opacity-40 cursor-pointer"
+              >
+                {addedState ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Added to Cart
+                  </>
+                ) : isOutOfStock ? (
+                  "Out of Stock"
+                ) : (
+                  "Add to Cart"
+                )}
+              </motion.button>
+            </div>
+            {quantity >= Math.min(8, currentVariant?.stock || 8) && (
+              <p className="text-[11px] text-muted mt-2 pl-2">
+                Maximum {Math.min(8, currentVariant?.stock || 8)} per order reached
+              </p>
+            )}
           </div>
 
           {/* Campus Delivery Points Info Card */}

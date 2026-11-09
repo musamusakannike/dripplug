@@ -16,7 +16,30 @@ function VerifyContent() {
     reference ? "polling" : "failed"
   );
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
   const clearCart = useCartStore((s) => s.clearCart);
+
+  async function handleRetryPayment() {
+    if (!orderNumber) return;
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(orderNumber)}/pay`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (res.ok && json.ok && json.data?.authorizationUrl) {
+        window.location.href = json.data.authorizationUrl;
+      } else {
+        setRetryError(json.error || "Could not restart payment. Please try from your Orders page.");
+        setRetrying(false);
+      }
+    } catch {
+      setRetryError("Network error. Please try again or check your Orders page.");
+      setRetrying(false);
+    }
+  }
 
   useEffect(() => {
     if (!reference) return;
@@ -182,16 +205,47 @@ function VerifyContent() {
       <h1 className="font-heading text-2xl sm:text-3xl uppercase">
         PAYMENT WAS NOT COMPLETED
       </h1>
+      {orderNumber && (
+        <p className="text-sm font-semibold text-black mt-2">
+          Order Number: <span className="underline">{orderNumber}</span>
+        </p>
+      )}
       <p className="text-xs sm:text-sm text-muted mt-2">
-        No worries — your cart items are still saved so you can try again.
+        Your payment attempt was declined or cancelled. Your order and items are saved so you can retry now.
       </p>
-      <div className="mt-8 flex justify-center gap-3">
-        <Link
-          href="/checkout"
-          className="h-12 px-7 rounded-full bg-black text-white text-xs sm:text-sm font-semibold inline-flex items-center"
-        >
-          Return to Checkout
-        </Link>
+
+      {retryError && (
+        <p className="text-xs font-semibold text-danger mt-3 bg-danger-bg p-2 rounded-xl">
+          {retryError}
+        </p>
+      )}
+
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        {orderNumber ? (
+          <>
+            <button
+              type="button"
+              onClick={handleRetryPayment}
+              disabled={retrying}
+              className="h-12 px-7 rounded-full bg-black text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-2 hover:bg-black/90 transition-colors disabled:opacity-60 cursor-pointer"
+            >
+              {retrying ? "Opening Paystack..." : "Retry Payment"}
+            </button>
+            <Link
+              href={`/orders/${orderNumber}`}
+              className="h-12 px-7 rounded-full border border-border text-xs sm:text-sm font-semibold inline-flex items-center hover:bg-surface transition-colors"
+            >
+              View Order Details
+            </Link>
+          </>
+        ) : (
+          <Link
+            href="/checkout"
+            className="h-12 px-7 rounded-full bg-black text-white text-xs sm:text-sm font-semibold inline-flex items-center"
+          >
+            Return to Checkout
+          </Link>
+        )}
       </div>
     </div>
   );

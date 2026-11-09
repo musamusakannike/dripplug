@@ -225,14 +225,18 @@ export function CartPageClient() {
                           </span>
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              if (item.quantity >= 8) {
+                                addToast("Maximum 8 units per item allowed per order.", "info");
+                                return;
+                              }
                               updateQuantity(
                                 item.productId,
                                 item.size,
                                 item.color,
                                 item.quantity + 1
-                              )
-                            }
+                              );
+                            }}
                             aria-label="Increase quantity"
                             className="text-black hover:opacity-70 cursor-pointer"
                           >

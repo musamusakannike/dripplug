@@ -132,7 +132,10 @@ export const useCartStore = create<CartState>()(
           if (res.ok) {
             const json = await res.json();
             if (json.ok && Array.isArray(json.data?.items)) {
-              set({ items: json.data.items });
+              const serverItems: CartItemClient[] = json.data.items;
+              if (serverItems.length > 0 || localItems.length === 0) {
+                set({ items: serverItems });
+              }
             }
           }
         } catch {

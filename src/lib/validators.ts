@@ -15,7 +15,7 @@ export const cartItemInputSchema = z.object({
   productId: z.string().min(1),
   slug: z.string().min(1),
   name: z.string().min(1),
-  image: z.string().url(),
+  image: z.string().min(1),
   size: z.string().min(1),
   color: z.string().min(1),
   colorHex: z.string().optional(),

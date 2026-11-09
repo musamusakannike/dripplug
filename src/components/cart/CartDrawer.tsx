@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
+import { useToastStore } from "@/store/toast";
 import { formatPrice } from "@/lib/format";
 
 export function CartDrawer() {
@@ -21,6 +22,7 @@ export function CartDrawer() {
 
   const user = useAuthStore((s) => s.user);
   const openAuthModal = useAuthStore((s) => s.openAuthModal);
+  const addToast = useToastStore((s) => s.addToast);
 
   function handleCheckoutClick() {
     setDrawerOpen(false);
@@ -164,14 +166,18 @@ export function CartDrawer() {
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={() =>
+                                  onClick={() => {
+                                    if (item.quantity >= 8) {
+                                      addToast("Maximum 8 units per item allowed per order.", "info");
+                                      return;
+                                    }
                                     updateQuantity(
                                       item.productId,
                                       item.size,
                                       item.color,
                                       item.quantity + 1
-                                    )
-                                  }
+                                    );
+                                  }}
                                   aria-label="Increase quantity"
                                   className="p-1 hover:text-black text-muted cursor-pointer"
                                 >

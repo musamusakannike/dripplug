@@ -155,7 +155,7 @@ export function AdminDashboardClient({
   const [prodImageInput, setProdImageInput] = useState("");
   const [prodVariants, setProdVariants] = useState<
     { size: string; color: string; sku: string; stock: number }[]
-  >([{ size: "L", color: "Black", sku: `SKU-${Date.now().toString().slice(-5)}`, stock: 15 }]);
+  >([{ size: "L", color: "Black", sku: "SKU-INIT", stock: 15 }]);
   const [prodIsFeatured, setProdIsFeatured] = useState(false);
   const [prodIsActive, setProdIsActive] = useState(true);
 
@@ -348,7 +348,7 @@ export function AdminDashboardClient({
     setProdVariants(
       p.variants.length > 0
         ? p.variants.map((v) => ({ ...v }))
-        : [{ size: "M", color: "Black", sku: `SKU-${Date.now().toString().slice(-5)}`, stock: 10 }]
+        : [{ size: "M", color: "Black", sku: "SKU-FALLBACK", stock: 10 }]
     );
     setProdIsFeatured(p.isFeatured);
     setProdIsActive(p.isActive);

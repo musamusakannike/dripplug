@@ -60,12 +60,12 @@ export async function POST(req: NextRequest) {
     if (!cart) {
       cart = await Cart.create({
         user: userId,
-        items: clientItems
-          .filter((i) => Types.ObjectId.isValid(i.productId))
-          .map((i) => ({
-            ...i,
-            productId: new Types.ObjectId(i.productId),
-          })),
+        items: clientItems.map((i) => ({
+          ...i,
+          productId: Types.ObjectId.isValid(i.productId)
+            ? new Types.ObjectId(i.productId)
+            : i.productId,
+        })),
       });
     } else {
       // Merge client items with server items
@@ -101,12 +101,12 @@ export async function POST(req: NextRequest) {
       }
 
       const finalItems = Array.from(mergedMap.values());
-      cart.items = finalItems
-        .filter((i) => Types.ObjectId.isValid(i.productId))
-        .map((i) => ({
-          ...i,
-          productId: new Types.ObjectId(i.productId),
-        }));
+      cart.items = finalItems.map((i) => ({
+        ...i,
+        productId: Types.ObjectId.isValid(i.productId)
+          ? new Types.ObjectId(i.productId)
+          : i.productId,
+      }));
       await cart.save();
     }
 
