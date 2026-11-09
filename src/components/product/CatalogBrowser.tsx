@@ -71,6 +71,39 @@ export function CatalogBrowser({
   const qParam = searchParams.get("q") || "";
   const onSaleParam = searchParams.get("onSale") === "true";
 
+  const hasActiveFilters = Boolean(
+    selectedSize ||
+    selectedColor ||
+    minPrice > 0 ||
+    maxPrice < 35000 ||
+    searchParams.get("size") ||
+    searchParams.get("color") ||
+    searchParams.get("minPrice") ||
+    searchParams.get("maxPrice")
+  );
+
+  const POPULAR_SEARCH_KEYWORDS = [
+    "jerseys",
+    "round necks",
+    "t-shirts",
+    "baggy jeans",
+    "joggers",
+    "hoodies",
+    "caps",
+    "unilorin",
+    "kaka",
+  ];
+
+  const suggestedTerm = qParam
+    ? POPULAR_SEARCH_KEYWORDS.find((term) => {
+        const q = qParam.toLowerCase().trim();
+        return (
+          (q.length >= 3 && term.startsWith(q.slice(0, 3))) ||
+          (q.length >= 4 && term.includes(q.slice(0, 4)))
+        );
+      })
+    : null;
+
   function buildUrl(overrides: Record<string, string | number | undefined>) {
     const params = new URLSearchParams(searchParams.toString());
     for (const [key, val] of Object.entries(overrides)) {
@@ -401,16 +434,46 @@ export function CatalogBrowser({
               <h2 className="font-heading text-xl uppercase">
                 No matching fits found
               </h2>
-              <p className="text-xs sm:text-sm text-muted mt-1 max-w-sm mx-auto">
-                Try clearing some filters or adjusting your price range to see more campus styles.
-              </p>
-              <button
-                type="button"
-                onClick={handleClearFilters}
-                className="mt-6 px-6 py-3 rounded-full bg-black text-white text-xs font-semibold hover:bg-black/90 transition-colors cursor-pointer"
-              >
-                Clear All Filters
-              </button>
+              {hasActiveFilters ? (
+                <>
+                  <p className="text-xs sm:text-sm text-muted mt-1 max-w-sm mx-auto">
+                    Try clearing some filters or adjusting your price range to see more campus styles.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleClearFilters}
+                    className="mt-6 px-6 py-3 rounded-full bg-black text-white text-xs font-semibold hover:bg-black/90 transition-colors cursor-pointer"
+                  >
+                    Clear All Filters
+                  </button>
+                </>
+              ) : (
+                <>
+                  {suggestedTerm && (
+                    <p className="text-xs sm:text-sm text-muted mt-2">
+                      Did you mean:{" "}
+                      <Link
+                        href={`/search?q=${encodeURIComponent(suggestedTerm)}`}
+                        className="text-black font-semibold underline underline-offset-4"
+                      >
+                        &ldquo;{suggestedTerm}&rdquo;
+                      </Link>
+                      ?
+                    </p>
+                  )}
+                  <p className="text-xs sm:text-sm text-muted mt-1.5 max-w-sm mx-auto">
+                    {qParam
+                      ? `We couldn't find items matching "${qParam}". Browse our catalog or try searching for jerseys, tees, or baggy jeans.`
+                      : "No products available in this selection yet."}
+                  </p>
+                  <Link
+                    href="/shop"
+                    className="mt-6 inline-flex items-center justify-center px-6 py-3 rounded-full bg-black text-white text-xs font-semibold hover:bg-black/90 transition-colors"
+                  >
+                    Browse All Fits
+                  </Link>
+                </>
+              )}
             </div>
           ) : (
             <>

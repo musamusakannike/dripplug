@@ -10,11 +10,15 @@ import {
   Clock,
   Star,
 } from "lucide-react";
-import { ORDER_STATUS_LABELS, OrderStatus } from "@/config/site";
+import {
+  ORDER_STATUS_LABELS,
+  OrderStatus,
+} from "@/config/site";
 import { getCurrentUser } from "@/lib/auth";
 import { connectDB, isDatabaseConfigured } from "@/lib/db";
 import { Order, IOrder } from "@/models/Order";
 import { formatDate, formatPrice } from "@/lib/format";
+import { OrderPaymentAction } from "@/components/orders/OrderPaymentAction";
 
 export const metadata: Metadata = {
   title: "Order Details",
@@ -58,7 +62,27 @@ export default async function OrderDetailPage({
     redirect("/orders");
   }
 
+  const isPaymentFailed = order.paymentStatus === "failed" && order.status !== "cancelled";
+  const isPendingPayment =
+    (order.status === "pending_payment" || order.paymentStatus === "unpaid") &&
+    order.status !== "cancelled";
+  const canPay = (isPendingPayment || isPaymentFailed) && order.status !== "cancelled";
   const currentStepIdx = TIMELINE_STEPS.findIndex((s) => s.key === order.status);
+
+  let badgeClass = "bg-black text-white";
+  let badgeLabel = ORDER_STATUS_LABELS[order.status] || order.status;
+
+  if (order.status === "delivered" || order.status === "paid") {
+    badgeClass = "bg-success/15 text-success border border-success/30";
+  } else if (order.status === "cancelled" || order.status === "refunded") {
+    badgeClass = "bg-danger-bg text-danger border border-danger/30";
+  } else if (isPaymentFailed) {
+    badgeClass = "bg-amber-100 text-amber-900 border border-amber-300";
+    badgeLabel = "Payment Failed";
+  } else if (isPendingPayment) {
+    badgeClass = "bg-amber-50 text-amber-800 border border-amber-200";
+    badgeLabel = "Pending Payment";
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
@@ -84,10 +108,19 @@ export default async function OrderDetailPage({
           </p>
         </div>
 
-        <span className="px-4 py-1.5 rounded-full bg-black text-white text-xs sm:text-sm font-semibold">
-          {ORDER_STATUS_LABELS[order.status] || order.status}
+        <span className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold ${badgeClass}`}>
+          {badgeLabel}
         </span>
       </div>
+
+      {/* Payment Action Banner for Unpaid / Failed Orders */}
+      {canPay && (
+        <OrderPaymentAction
+          orderNumber={order.orderNumber}
+          total={order.total}
+          variant="banner"
+        />
+      )}
 
       {/* Status Timeline */}
       {order.status !== "cancelled" && order.status !== "refunded" && (

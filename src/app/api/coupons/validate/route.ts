@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!couponData) {
-      return apiError("Invalid promo code. Try UNILORIN10 or FRESHERS2K.", 404);
+      return apiError("This code isn't valid or has expired.", 404);
     }
 
     if (subtotal < couponData.minOrder) {

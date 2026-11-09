@@ -12,16 +12,13 @@ export function AnnouncementBar() {
   const hydrated = useHydrated();
   const [dismissedInSession, setDismissedInSession] = useState(false);
 
-  const isStoredDismissed =
-    hydrated &&
-    typeof window !== "undefined" &&
-    window.localStorage.getItem(ANNOUNCEMENT_BAR.storageKey) === "true";
-
   if (
+    !hydrated ||
     pathname?.startsWith("/admin") ||
     !ANNOUNCEMENT_BAR.enabled ||
     dismissedInSession ||
-    isStoredDismissed
+    (typeof window !== "undefined" &&
+      window.localStorage.getItem(ANNOUNCEMENT_BAR.storageKey) === "true")
   ) {
     return null;
   }

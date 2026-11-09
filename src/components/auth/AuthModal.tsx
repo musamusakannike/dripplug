@@ -21,15 +21,8 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const login = useAuthStore((s) => s.login);
-  const register = useAuthStore((s) => s.register);
-  const syncWithServer = useCartStore((s) => s.syncWithServer);
-  const addToast = useToastStore((s) => s.addToast);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const [error, setError] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get("error");
     if (oauthError) {
@@ -42,9 +35,15 @@ export function AuthForm({ redirectTo, onSuccess }: AuthFormProps) {
         google_email_required: "Your Google account must have a verified email address.",
         google_server_error: "An unexpected server error occurred during Google sign-in.",
       };
-      setError(messages[oauthError] || "Google sign-in could not be completed.");
+      return messages[oauthError] || "Google sign-in could not be completed.";
     }
-  }, []);
+    return null;
+  });
+
+  const login = useAuthStore((s) => s.login);
+  const register = useAuthStore((s) => s.register);
+  const syncWithServer = useCartStore((s) => s.syncWithServer);
+  const addToast = useToastStore((s) => s.addToast);
 
   async function completeLogin(userName: string) {
     await syncWithServer();

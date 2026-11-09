@@ -58,6 +58,18 @@ export async function GET(req: NextRequest) {
           status: result.order?.status || "paid",
         });
       } else if (txData.status === "failed" || txData.status === "abandoned") {
+        order.paymentStatus = "failed";
+        const alreadyNoted = order.statusHistory.some((h) =>
+          h.note?.toLowerCase().includes("failed") || h.note?.toLowerCase().includes("abandoned")
+        );
+        if (!alreadyNoted) {
+          order.statusHistory.push({
+            status: order.status,
+            note: `Paystack payment ${txData.status} (${reference})`,
+            timestamp: new Date(),
+          });
+        }
+        await order.save();
         return apiSuccess({
           paymentStatus: "failed",
           orderNumber: order.orderNumber,

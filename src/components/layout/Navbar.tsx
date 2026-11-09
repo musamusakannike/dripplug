@@ -53,11 +53,14 @@ export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
   const setUser = useAuthStore((s) => s.setUser);
   const openAuthModal = useAuthStore((s) => s.openAuthModal);
 
+  const syncWithServer = useCartStore((s) => s.syncWithServer);
+
   useEffect(() => {
     if (initialUser) {
       setUser(initialUser);
+      syncWithServer();
     }
-  }, [initialUser, setUser]);
+  }, [initialUser, setUser, syncWithServer]);
 
   // Debounced search suggestions
   useEffect(() => {
@@ -131,7 +134,7 @@ export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             aria-expanded={mobileMenuOpen}
             aria-label="Toggle navigation menu"
-            className="md:hidden p-2 -ml-2 rounded-full hover:bg-surface transition-colors cursor-pointer"
+            className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2 rounded-full hover:bg-surface transition-colors cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -266,7 +269,7 @@ export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
             type="button"
             onClick={() => setMobileSearchOpen((p) => !p)}
             aria-label="Search products"
-            className="md:hidden p-2.5 rounded-full hover:bg-surface transition-colors cursor-pointer"
+            className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-surface transition-colors cursor-pointer"
           >
             <Search className="w-5 h-5" />
           </button>
@@ -275,7 +278,7 @@ export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label={`Shopping cart with ${hydrated ? itemsCount : 0} items`}
-            className="relative p-2.5 rounded-full hover:bg-surface transition-colors cursor-pointer"
+            className="relative min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-surface transition-colors cursor-pointer"
           >
             <ShoppingBag className="w-5 h-5" />
             {hydrated && itemsCount > 0 && (
@@ -306,7 +309,7 @@ export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
             <Link
               href="/account"
               aria-label="My Account"
-              className="p-2.5 rounded-full hover:bg-surface transition-colors flex items-center gap-1.5"
+              className="min-h-[44px] px-2.5 rounded-full hover:bg-surface transition-colors flex items-center gap-1.5"
             >
               <User className="w-5 h-5" />
               <span className="hidden lg:inline text-xs font-semibold max-w-[90px] truncate">
@@ -318,7 +321,7 @@ export function Navbar({ initialUser }: { initialUser: SessionUser | null }) {
               type="button"
               onClick={() => openAuthModal()}
               aria-label="Sign in to account"
-              className="p-2.5 rounded-full hover:bg-surface transition-colors cursor-pointer"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-surface transition-colors cursor-pointer"
             >
               <User className="w-5 h-5" />
             </button>

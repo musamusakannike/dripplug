@@ -5,17 +5,27 @@ import { redirect } from "next/navigation";
 import { Types } from "mongoose";
 import type { Metadata } from "next";
 import { ChevronRight, Package, ArrowRight } from "lucide-react";
-import { APP_NAME, ORDER_STATUS_LABELS, OrderStatus } from "@/config/site";
+import {
+  APP_NAME,
+  ORDER_STATUS_LABELS,
+  OrderStatus,
+  PENDING_ORDER_EXPIRY_MINUTES,
+} from "@/config/site";
 import { getCurrentUser } from "@/lib/auth";
 import { connectDB, isDatabaseConfigured } from "@/lib/db";
 import { Order, IOrder } from "@/models/Order";
 import { formatDate, formatPrice } from "@/lib/format";
+import { OrderPaymentAction } from "@/components/orders/OrderPaymentAction";
 
 export const metadata: Metadata = {
   title: "My Orders",
   description: `Track your ${APP_NAME} campus deliveries.`,
   robots: { index: false, follow: false },
 };
+
+function getOrderExpiryCutoff() {
+  return new Date(Date.now() - PENDING_ORDER_EXPIRY_MINUTES * 60 * 1000);
+}
 
 export default async function OrdersListPage() {
   const user = await getCurrentUser();
@@ -27,7 +37,30 @@ export default async function OrdersListPage() {
   if (isDatabaseConfigured() && Types.ObjectId.isValid(user.id)) {
     try {
       await connectDB();
-      orders = (await Order.find({ user: new Types.ObjectId(user.id) })
+      const userObjectId = new Types.ObjectId(user.id);
+
+      // Lazily auto-expire any stale pending orders (> 24 hours)
+      const cutoff = getOrderExpiryCutoff();
+      await Order.updateMany(
+        {
+          user: userObjectId,
+          status: "pending_payment",
+          paymentStatus: { $ne: "paid" },
+          createdAt: { $lt: cutoff },
+        },
+        {
+          $set: { status: "cancelled", paymentStatus: "failed" },
+          $push: {
+            statusHistory: {
+              status: "cancelled",
+              note: `Auto-expired after ${Math.round(PENDING_ORDER_EXPIRY_MINUTES / 60)} hours without payment`,
+              timestamp: new Date(),
+            },
+          },
+        }
+      );
+
+      orders = (await Order.find({ user: userObjectId })
         .sort({ createdAt: -1 })
         .lean()) as unknown as IOrder[];
     } catch {
@@ -72,12 +105,25 @@ export default async function OrdersListPage() {
         <div className="space-y-4">
           {orders.map((order) => {
             const status = order.status as OrderStatus;
-            const badgeClass =
-              status === "delivered" || status === "paid"
-                ? "bg-success/10 text-success"
-                : status === "cancelled" || status === "refunded"
-                ? "bg-danger-bg text-danger"
-                : "bg-surface text-black";
+            const isPaymentFailed = order.paymentStatus === "failed" && status !== "cancelled";
+            const isPendingPayment = (status === "pending_payment" || order.paymentStatus === "unpaid") && status !== "cancelled";
+
+            let badgeClass = "bg-surface text-black";
+            let badgeLabel = ORDER_STATUS_LABELS[status] || status;
+
+            if (status === "delivered" || status === "paid") {
+              badgeClass = "bg-success/10 text-success";
+            } else if (status === "cancelled" || status === "refunded") {
+              badgeClass = "bg-danger-bg text-danger";
+            } else if (isPaymentFailed) {
+              badgeClass = "bg-amber-100 text-amber-900 border border-amber-300";
+              badgeLabel = "Payment Failed";
+            } else if (isPendingPayment) {
+              badgeClass = "bg-amber-50 text-amber-800 border border-amber-200";
+              badgeLabel = "Pending Payment";
+            }
+
+            const canPay = isPendingPayment || isPaymentFailed;
 
             return (
               <div
@@ -92,7 +138,7 @@ export default async function OrdersListPage() {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
                     >
-                      {ORDER_STATUS_LABELS[status] || status}
+                      {badgeLabel}
                     </span>
                     <span className="text-xs text-muted">
                       Placed on {formatDate(order.createdAt)}
@@ -133,13 +179,18 @@ export default async function OrdersListPage() {
                   </div>
                 </div>
 
-                <Link
-                  href={`/orders/${order.orderNumber}`}
-                  className="h-11 px-5 rounded-full bg-black text-white text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-black/90 transition-colors shrink-0"
-                >
-                  <span>View Timeline</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                <div className="flex items-center gap-2.5 self-start sm:self-center shrink-0">
+                  {canPay && (
+                    <OrderPaymentAction orderNumber={order.orderNumber} total={order.total} />
+                  )}
+                  <Link
+                    href={`/orders/${order.orderNumber}`}
+                    className="h-10 px-4 rounded-full border border-border hover:bg-surface text-black text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <span>Timeline</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             );
           })}

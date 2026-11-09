@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, Lock, ShieldCheck, MessageCircle } from "lucide-react";
+import { Mail } from "lucide-react";
 import {
   APP_DESCRIPTION,
   APP_NAME,
@@ -113,7 +113,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on X`}
-                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+                className="w-11 h-11 p-2 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden shrink-0"
               >
                 <Image
                   src="/twitter.png"
@@ -128,7 +128,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on Instagram`}
-                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+                className="w-11 h-11 p-2 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden shrink-0"
               >
                 <Image
                   src="/instagram.png"
@@ -143,7 +143,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on TikTok`}
-                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+                className="w-11 h-11 p-2 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden shrink-0"
               >
                 <Image
                   src="/tiktok.png"
@@ -158,7 +158,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${APP_NAME} on WhatsApp`}
-                className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+                className="w-11 h-11 p-2 rounded-full bg-white border border-border flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden shrink-0"
               >
                 <Image
                   src="/whatsapp.png"
