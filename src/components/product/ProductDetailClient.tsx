@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   X,
   Star,
+  Sparkles,
 } from "lucide-react";
 import {
   DELIVERY_POINTS,
@@ -57,6 +58,8 @@ export function ProductDetailClient({
   const [selectedSize, setSelectedSize] = useState<string>(initialSize);
   const [quantity, setQuantity] = useState(1);
   const [addedState, setAddedState] = useState(false);
+  const [wantsCustomization, setWantsCustomization] = useState(false);
+  const [customizationText, setCustomizationText] = useState("");
 
   const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">(
     "reviews"
@@ -102,7 +105,10 @@ export function ProductDetailClient({
   const currentVariant = product.variants.find(
     (v) => v.color === selectedColor && v.size === selectedSize
   );
-  const unitPrice = currentVariant?.priceOverride || product.basePrice;
+  const customizationFee = product.isCustomizable ? (product.customizationPrice || 0) : 0;
+  const effectiveCustomizationFee = wantsCustomization && product.isCustomizable ? customizationFee : 0;
+  const baseUnitPrice = currentVariant?.priceOverride || product.basePrice;
+  const unitPrice = baseUnitPrice + effectiveCustomizationFee;
   const discountPercent = getDiscountPercentage(unitPrice, product.compareAtPrice);
   const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
 
@@ -127,6 +133,14 @@ export function ProductDetailClient({
       return;
     }
 
+    if (wantsCustomization && product.isCustomizable) {
+      if (!customizationText.trim()) {
+        addToast("Please enter your desired customization details.", "error");
+        return;
+      }
+    }
+
+    const isCustomized = Boolean(wantsCustomization && product.isCustomizable && customizationText.trim());
     const colorObj = product.colors.find((c) => c.name === selectedColor);
     addItem({
       productId: product._id,
@@ -139,11 +153,14 @@ export function ProductDetailClient({
       unitPrice,
       compareAtPrice: product.compareAtPrice,
       quantity,
+      isCustomized,
+      customizationFee: isCustomized ? customizationFee : 0,
+      customizationText: isCustomized ? customizationText.trim() : undefined,
     });
 
     setAddedState(true);
     addToast(
-      `Added ${quantity}x ${product.name} (${selectedSize}, ${selectedColor}) to cart`,
+      `Added ${quantity}x ${product.name}${isCustomized ? " (Customized)" : ""} (${selectedSize}, ${selectedColor}) to cart`,
       "success"
     );
     setTimeout(() => setAddedState(false), 1400);
@@ -391,6 +408,60 @@ export function ProductDetailClient({
               })}
             </div>
           </div>
+
+          {/* Customization Option (jerseys, trucker caps, custom streetwear) */}
+          {product.isCustomizable && (
+            <div className="pt-6 border-t border-border mt-6">
+              <div
+                className={`rounded-[20px] border transition-all p-4 ${
+                  wantsCustomization
+                    ? "border-black/20 bg-surface shadow-xs"
+                    : "border-border/80 bg-surface/40 hover:bg-surface/70"
+                }`}
+              >
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={wantsCustomization}
+                    onChange={(e) => setWantsCustomization(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-black cursor-pointer accent-black"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-xs sm:text-sm font-bold text-black flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                        Add Custom Name / Number / Text
+                      </span>
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-black text-white">
+                        +{formatPrice(product.customizationPrice || 0)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted mt-1">
+                      {product.customizationPrompt ||
+                        "Personalize this item with your desired name, number, or short embroidery text."}
+                    </p>
+                  </div>
+                </label>
+
+                {wantsCustomization && (
+                  <div className="mt-3.5 pt-3 border-t border-border/70 space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px] font-medium text-muted">
+                      <span>{product.customizationPrompt || "Customization instructions"}</span>
+                      <span>{customizationText.length}/150</span>
+                    </div>
+                    <textarea
+                      rows={2}
+                      maxLength={150}
+                      value={customizationText}
+                      onChange={(e) => setCustomizationText(e.target.value)}
+                      placeholder={product.customizationPrompt || "e.g. OLA 10 (Jersey back name & number)"}
+                      className="w-full bg-white border border-border rounded-xl p-3 text-xs sm:text-sm text-black placeholder:text-muted-light outline-none focus:border-black resize-none transition-colors"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Quantity Stepper Pill + Wide Black Add to Cart Pill */}
           <div className="pt-6">

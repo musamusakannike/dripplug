@@ -47,6 +47,9 @@ export interface SerializedProduct {
   isActive: boolean;
   isNewArrival?: boolean;
   isBestSeller?: boolean;
+  isCustomizable?: boolean;
+  customizationPrice?: number;
+  customizationPrompt?: string;
   newArrivalOrder?: number;
   bestSellerOrder?: number;
   soldCount: number;
@@ -79,6 +82,9 @@ export interface CartItemClient {
   unitPrice: number;
   compareAtPrice?: number;
   quantity: number;
+  isCustomized?: boolean;
+  customizationFee?: number;
+  customizationText?: string;
 }
 
 export interface SerializedOrder {
@@ -95,6 +101,9 @@ export interface SerializedOrder {
     sku: string;
     unitPrice: number;
     quantity: number;
+    isCustomized?: boolean;
+    customizationFee?: number;
+    customizationText?: string;
   }[];
   subtotal: number;
   deliveryFee: number;

@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ArrowLeft,
   ShoppingBag,
+  Sparkles,
 } from "lucide-react";
 import {
   DELIVERY_POINTS,
@@ -129,6 +130,8 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
             size: i.size,
             color: i.color,
             quantity: i.quantity,
+            isCustomized: i.isCustomized,
+            customizationText: i.customizationText,
           })),
         }),
       });
@@ -244,12 +247,19 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
           <div className="px-5 pb-5 pt-2 border-t border-border bg-white space-y-3 text-xs">
             {items.map((item) => (
               <div
-                key={`${item.productId}_${item.size}_${item.color}`}
+                key={`${item.productId}_${item.size}_${item.color}_${item.customizationText || ""}`}
                 className="flex items-center justify-between gap-2"
               >
-                <span className="truncate">
-                  {item.quantity}x {item.name} ({item.size}, {item.color})
-                </span>
+                <div className="min-w-0">
+                  <span className="truncate block">
+                    {item.quantity}x {item.name} ({item.size}, {item.color})
+                  </span>
+                  {item.isCustomized && item.customizationText && (
+                    <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200/70 rounded px-1.5 py-0.2 inline-block font-mono">
+                      Custom: {item.customizationText}
+                    </span>
+                  )}
+                </div>
                 <span className="font-bold shrink-0">
                   {formatPrice(item.unitPrice * item.quantity)}
                 </span>
@@ -611,7 +621,7 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
           <div className="divide-y divide-border max-h-72 overflow-y-auto pr-1">
             {items.map((item) => (
               <div
-                key={`${item.productId}_${item.size}_${item.color}`}
+                key={`${item.productId}_${item.size}_${item.color}_${item.customizationText || ""}`}
                 className="py-3 flex items-center gap-3"
               >
                 <div className="relative w-14 h-14 rounded-xl bg-surface overflow-hidden shrink-0">
@@ -630,6 +640,14 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
                   <p className="text-[11px] text-muted">
                     Qty: {item.quantity} &bull; {item.size} &bull; {item.color}
                   </p>
+                  {item.isCustomized && item.customizationText && (
+                    <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-900 bg-amber-50 border border-amber-200/70 rounded px-1.5 py-0.5 max-w-fit">
+                      <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
+                      <span className="font-mono truncate max-w-[140px]" title={item.customizationText}>
+                        {item.customizationText}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <span className="text-xs sm:text-sm font-bold text-black">
                   {formatPrice(item.unitPrice * item.quantity)}

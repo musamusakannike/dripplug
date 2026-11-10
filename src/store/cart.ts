@@ -19,8 +19,14 @@ interface CartState {
   bumpKey: number;
   setDrawerOpen: (open: boolean) => void;
   addItem: (item: CartItemClient) => void;
-  removeItem: (productId: string, size: string, color: string) => void;
-  updateQuantity: (productId: string, size: string, color: string, quantity: number) => void;
+  removeItem: (productId: string, size: string, color: string, customizationText?: string) => void;
+  updateQuantity: (
+    productId: string,
+    size: string,
+    color: string,
+    quantity: number,
+    customizationText?: string
+  ) => void;
   clearCart: () => void;
   setItems: (items: CartItemClient[]) => void;
   setCoupon: (coupon: AppliedCoupon | null) => void;
@@ -45,11 +51,13 @@ export const useCartStore = create<CartState>()(
 
       addItem: (newItem) => {
         const current = get().items;
+        const normCustom = (newItem.customizationText || "").trim().toLowerCase();
         const existingIndex = current.findIndex(
           (i) =>
             i.productId === newItem.productId &&
             i.size === newItem.size &&
-            i.color === newItem.color
+            i.color === newItem.color &&
+            (i.customizationText || "").trim().toLowerCase() === normCustom
         );
 
         let updated: CartItemClient[];
@@ -66,20 +74,33 @@ export const useCartStore = create<CartState>()(
         set({ items: updated, bumpKey: get().bumpKey + 1 });
       },
 
-      removeItem: (productId, size, color) => {
+      removeItem: (productId, size, color, customizationText) => {
+        const normTarget = customizationText !== undefined ? customizationText.trim().toLowerCase() : undefined;
         const updated = get().items.filter(
-          (i) => !(i.productId === productId && i.size === size && i.color === color)
+          (i) =>
+            !(
+              i.productId === productId &&
+              i.size === size &&
+              i.color === color &&
+              (normTarget === undefined ||
+                (i.customizationText || "").trim().toLowerCase() === normTarget)
+            )
         );
         set({ items: updated });
       },
 
-      updateQuantity: (productId, size, color, quantity) => {
+      updateQuantity: (productId, size, color, quantity, customizationText) => {
         if (quantity <= 0) {
-          get().removeItem(productId, size, color);
+          get().removeItem(productId, size, color, customizationText);
           return;
         }
+        const normTarget = customizationText !== undefined ? customizationText.trim().toLowerCase() : undefined;
         const updated = get().items.map((item) =>
-          item.productId === productId && item.size === size && item.color === color
+          item.productId === productId &&
+          item.size === size &&
+          item.color === color &&
+          (normTarget === undefined ||
+            (item.customizationText || "").trim().toLowerCase() === normTarget)
             ? { ...item, quantity: Math.min(20, quantity) }
             : item
         );

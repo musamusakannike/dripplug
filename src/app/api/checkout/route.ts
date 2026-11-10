@@ -95,7 +95,16 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const unitPrice = variant.priceOverride || product.basePrice;
+      const baseUnitPrice = variant.priceOverride || product.basePrice;
+      const isCustomized = Boolean(
+        product.isCustomizable &&
+        reqItem.isCustomized &&
+        reqItem.customizationText?.trim()
+      );
+      const customizationFee = isCustomized
+        ? Math.max(0, product.customizationPrice || 0)
+        : 0;
+      const unitPrice = baseUnitPrice + customizationFee;
       subtotal += unitPrice * reqItem.quantity;
 
       orderItems.push({
@@ -108,6 +117,11 @@ export async function POST(req: NextRequest) {
         sku: variant.sku,
         unitPrice,
         quantity: reqItem.quantity,
+        isCustomized,
+        customizationFee,
+        customizationText: isCustomized
+          ? reqItem.customizationText!.trim()
+          : undefined,
       });
     }
 

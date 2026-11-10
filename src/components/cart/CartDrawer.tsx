@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Sparkles } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { useToastStore } from "@/store/toast";
@@ -89,7 +89,7 @@ export function CartDrawer() {
                 <div className="flex-1 overflow-y-auto px-6 py-4 divide-y divide-border">
                   <AnimatePresence initial={false}>
                     {items.map((item) => {
-                      const key = `${item.productId}_${item.size}_${item.color}`;
+                      const key = `${item.productId}_${item.size}_${item.color}_${item.customizationText || ""}`;
                       return (
                         <motion.div
                           key={key}
@@ -127,11 +127,19 @@ export function CartDrawer() {
                                   Size: <span className="text-black">{item.size}</span> &bull;{" "}
                                   Color: <span className="text-black">{item.color}</span>
                                 </p>
+                                {item.isCustomized && item.customizationText && (
+                                  <div className="mt-1 flex items-center gap-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200/80 rounded-md px-2 py-0.5 max-w-fit">
+                                    <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
+                                    <span className="truncate max-w-[170px]" title={item.customizationText}>
+                                      Custom: {item.customizationText}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                               <button
                                 type="button"
                                 onClick={() =>
-                                  removeItem(item.productId, item.size, item.color)
+                                  removeItem(item.productId, item.size, item.color, item.customizationText)
                                 }
                                 aria-label={`Remove ${item.name} from cart`}
                                 className="p-1.5 text-danger hover:bg-danger-bg rounded-full transition-colors cursor-pointer"
@@ -153,7 +161,8 @@ export function CartDrawer() {
                                       item.productId,
                                       item.size,
                                       item.color,
-                                      item.quantity - 1
+                                      item.quantity - 1,
+                                      item.customizationText
                                     )
                                   }
                                   aria-label="Decrease quantity"
@@ -175,7 +184,8 @@ export function CartDrawer() {
                                       item.productId,
                                       item.size,
                                       item.color,
-                                      item.quantity + 1
+                                      item.quantity + 1,
+                                      item.customizationText
                                     );
                                   }}
                                   aria-label="Increase quantity"

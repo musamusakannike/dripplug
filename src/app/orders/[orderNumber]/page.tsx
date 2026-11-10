@@ -9,6 +9,7 @@ import {
   MapPin,
   Clock,
   Star,
+  Sparkles,
 } from "lucide-react";
 import {
   ORDER_STATUS_LABELS,
@@ -183,7 +184,21 @@ export default async function OrderDetailPage({
                     Size: {item.size} &bull; Color: {item.color} &bull; Qty:{" "}
                     {item.quantity}
                   </p>
-                  <p className="text-xs font-bold mt-1">
+                  {item.isCustomized && item.customizationText && (
+                    <div className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-900 bg-amber-50 border border-amber-200/90 rounded-lg px-2.5 py-1">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-semibold">Customization: </span>
+                        <span className="font-mono">{item.customizationText}</span>
+                        {item.customizationFee ? (
+                          <span className="text-amber-700/80 text-[11px] ml-1.5 font-sans">
+                            (+{formatPrice(item.customizationFee)} each)
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs font-bold mt-1.5">
                     {formatPrice(item.unitPrice * item.quantity)}
                   </p>
                 </div>

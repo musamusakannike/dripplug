@@ -11,6 +11,9 @@ export interface IOrderItemSnapshot {
   sku: string;
   unitPrice: number;
   quantity: number;
+  isCustomized?: boolean;
+  customizationFee?: number;
+  customizationText?: string;
 }
 
 export interface IDeliveryPointSnapshot {
@@ -66,6 +69,9 @@ const OrderItemSnapshotSchema = new Schema<IOrderItemSnapshot>(
     sku: { type: String, required: true },
     unitPrice: { type: Number, required: true, min: 0 },
     quantity: { type: Number, required: true, min: 1 },
+    isCustomized: { type: Boolean, default: false },
+    customizationFee: { type: Number, default: 0, min: 0 },
+    customizationText: { type: String, trim: true },
   },
   { _id: false }
 );

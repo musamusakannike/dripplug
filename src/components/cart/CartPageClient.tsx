@@ -13,6 +13,7 @@ import {
   Tag,
   ArrowRight,
   ShoppingBag,
+  Sparkles,
 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
@@ -139,7 +140,7 @@ export function CartPageClient() {
           <div className="lg:col-span-7 rounded-[20px] border border-border px-4 sm:px-6 divide-y divide-border">
             <AnimatePresence initial={false}>
               {items.map((item) => {
-                const key = `${item.productId}_${item.size}_${item.color}`;
+                const key = `${item.productId}_${item.size}_${item.color}_${item.customizationText || ""}`;
                 return (
                   <motion.div
                     key={key}
@@ -185,12 +186,19 @@ export function CartPageClient() {
                               {item.color}
                             </span>
                           </p>
+                          {item.isCustomized && item.customizationText && (
+                            <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-900 bg-amber-50 border border-amber-200/80 rounded-md px-2.5 py-1 max-w-fit">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span className="font-semibold">Custom:</span>
+                              <span className="font-mono">{item.customizationText}</span>
+                            </div>
+                          )}
                         </div>
 
                         <button
                           type="button"
                           onClick={() =>
-                            removeItem(item.productId, item.size, item.color)
+                            removeItem(item.productId, item.size, item.color, item.customizationText)
                           }
                           aria-label={`Remove ${item.name} from cart`}
                           className="p-1.5 text-danger hover:bg-danger-bg rounded-full transition-colors cursor-pointer"
@@ -212,7 +220,8 @@ export function CartPageClient() {
                                 item.productId,
                                 item.size,
                                 item.color,
-                                item.quantity - 1
+                                item.quantity - 1,
+                                item.customizationText
                               )
                             }
                             aria-label="Decrease quantity"
@@ -234,7 +243,8 @@ export function CartPageClient() {
                                 item.productId,
                                 item.size,
                                 item.color,
-                                item.quantity + 1
+                                item.quantity + 1,
+                                item.customizationText
                               );
                             }}
                             aria-label="Increase quantity"

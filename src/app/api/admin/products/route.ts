@@ -50,6 +50,9 @@ export async function POST(req: NextRequest) {
       ...parsed,
       slug,
       compareAtPrice: parsed.compareAtPrice || undefined,
+      isCustomizable: Boolean(parsed.isCustomizable),
+      customizationPrice: parsed.customizationPrice || 0,
+      customizationPrompt: parsed.customizationPrompt || "",
       category: category._id,
       categorySlug: category.slug,
     });
@@ -143,6 +146,9 @@ export async function PUT(req: NextRequest) {
     existing.isActive = parsed.isActive;
     existing.isNewArrival = parsed.isNewArrival;
     existing.isBestSeller = parsed.isBestSeller;
+    existing.isCustomizable = Boolean(parsed.isCustomizable);
+    existing.customizationPrice = parsed.customizationPrice || 0;
+    existing.customizationPrompt = parsed.customizationPrompt || "";
     existing.newArrivalOrder = parsed.newArrivalOrder;
     existing.bestSellerOrder = parsed.bestSellerOrder;
     existing.metaTitle = parsed.metaTitle;

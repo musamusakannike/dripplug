@@ -36,6 +36,9 @@ export interface IProduct extends Document {
   isActive: boolean;
   isNewArrival: boolean;
   isBestSeller: boolean;
+  isCustomizable?: boolean;
+  customizationPrice?: number;
+  customizationPrompt?: string;
   newArrivalOrder: number;
   bestSellerOrder: number;
   soldCount: number;
@@ -93,6 +96,9 @@ const ProductSchema = new Schema<IProduct>(
     isActive: { type: Boolean, default: true, index: true },
     isNewArrival: { type: Boolean, default: false, index: true },
     isBestSeller: { type: Boolean, default: false, index: true },
+    isCustomizable: { type: Boolean, default: false, index: true },
+    customizationPrice: { type: Number, default: 0, min: 0 },
+    customizationPrompt: { type: String, trim: true, default: "" },
     newArrivalOrder: { type: Number, default: 0 },
     bestSellerOrder: { type: Number, default: 0 },
     soldCount: { type: Number, default: 0, index: true },

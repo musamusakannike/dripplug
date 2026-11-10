@@ -22,6 +22,9 @@ export const cartItemInputSchema = z.object({
   unitPrice: z.number().nonnegative(),
   compareAtPrice: z.number().nonnegative().optional(),
   quantity: z.number().int().min(1).max(20),
+  isCustomized: z.boolean().optional(),
+  customizationFee: z.number().nonnegative().optional(),
+  customizationText: z.string().trim().max(150).optional(),
 });
 
 export const cartSyncSchema = z.object({
@@ -51,6 +54,8 @@ export const checkoutInputSchema = z
           size: z.string().min(1),
           color: z.string().min(1),
           quantity: z.number().int().min(1).max(20),
+          isCustomized: z.boolean().optional(),
+          customizationText: z.string().trim().max(150).optional(),
         })
       )
       .min(1, "Your cart is empty"),
@@ -174,6 +179,9 @@ export const adminProductSchema = z.object({
   isActive: z.boolean().default(true),
   isNewArrival: z.boolean().default(false),
   isBestSeller: z.boolean().default(false),
+  isCustomizable: z.boolean().default(false),
+  customizationPrice: z.number().int().nonnegative().optional().nullable(),
+  customizationPrompt: z.string().trim().max(160).optional().nullable(),
   newArrivalOrder: z.number().int().default(0),
   bestSellerOrder: z.number().int().default(0),
   metaTitle: z.string().trim().max(120).optional(),

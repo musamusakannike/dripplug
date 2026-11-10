@@ -219,6 +219,20 @@ function renderOrderItemsTable(items: IOrder["items"]): string {
           <div style="font-size:12px;color:#666666;margin-top:2px;">
             Size: <strong style="color:#333;">${item.size}</strong> &bull; Color: <strong style="color:#333;">${item.color}</strong> &bull; Qty: ${item.quantity}
           </div>
+          ${
+            item.isCustomized && item.customizationText
+              ? `
+            <div style="margin-top:6px;padding:6px 10px;background-color:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;line-height:1.4;">
+              <strong>Customization:</strong> <span style="font-family:monospace;font-size:12px;color:#78350f;">${item.customizationText}</span>
+              ${
+                item.customizationFee
+                  ? `<span style="font-size:11px;color:#b45309;margin-left:6px;">(+${formatPrice(item.customizationFee)} each)</span>`
+                  : ""
+              }
+            </div>
+          `
+              : ""
+          }
         </td>
         <td style="padding:10px 0;border-bottom:1px solid #eeeeee;text-align:right;font-weight:700;font-size:14px;color:#000000;vertical-align:top;">
           ${formatPrice(item.unitPrice * item.quantity)}
