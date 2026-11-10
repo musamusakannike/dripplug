@@ -26,6 +26,8 @@ function getR2Client(): S3Client {
     s3ClientInstance = new S3Client({
       region: "auto",
       endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
       credentials: {
         accessKeyId: R2_ACCESS_KEY_ID,
         secretAccessKey: R2_SECRET_ACCESS_KEY,
@@ -45,6 +47,40 @@ export function extractObjectKeyFromUrl(url: string): string | null {
     return null;
   }
   return url.slice(R2_PUBLIC_URL.length).replace(/^\//, "");
+}
+
+/**
+ * Uploads a buffer directly to Cloudflare R2 from the server.
+ */
+export async function uploadBuffer(params: {
+  buffer: Buffer;
+  fileType: "image/jpeg" | "image/png" | "image/webp";
+  folder?: "products" | "categories";
+}): Promise<{ publicUrl: string; key: string }> {
+  const client = getR2Client();
+  const extMap: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+  };
+  const ext = extMap[params.fileType] || "jpg";
+  const folder = params.folder || "products";
+  const key = `${folder}/${crypto.randomUUID()}.${ext}`;
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: key,
+      Body: params.buffer,
+      ContentType: params.fileType,
+      ContentLength: params.buffer.byteLength,
+    })
+  );
+
+  return {
+    publicUrl: getPublicUrl(key),
+    key,
+  };
 }
 
 /**
