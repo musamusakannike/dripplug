@@ -5,6 +5,7 @@ import { Order } from "@/models/Order";
 import { DELIVERY_POINTS } from "@/config/site";
 import { adminOrderStatusSchema } from "@/lib/validators";
 import { apiError, apiSuccess, handleApiException } from "@/lib/rate-limit";
+import { sendOrderStatusUpdateEmail } from "@/lib/email";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -26,6 +27,8 @@ export async function PUT(req: NextRequest) {
       return apiError("Order not found.", 404);
     }
 
+    const previousStatus = order.status;
+    const isStatusChanging = Boolean(parsed.status && parsed.status !== previousStatus);
     const changes: string[] = [];
 
     if (parsed.status && parsed.status !== order.status) {
@@ -77,6 +80,17 @@ export async function PUT(req: NextRequest) {
     }
 
     await order.save();
+
+    // Notify customer about order fulfillment changes
+    if (isStatusChanging && parsed.status) {
+      await sendOrderStatusUpdateEmail(
+        order,
+        previousStatus,
+        parsed.status,
+        parsed.note
+      );
+    }
+
     return apiSuccess({ order });
   } catch (err) {
     return handleApiException(err);

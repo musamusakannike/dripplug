@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { apiError, apiSuccess, handleApiException } from "@/lib/rate-limit";
+import { sendAdminRolePromotionEmail } from "@/lib/email";
 
 const adminUserUpdateSchema = z.object({
   id: z.string().min(1),
@@ -24,19 +25,26 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const parsed = adminUserUpdateSchema.parse(body);
 
-    const updateFields: Record<string, unknown> = {};
-    if (parsed.name !== undefined) updateFields.name = parsed.name;
-    if (parsed.email !== undefined) updateFields.email = parsed.email.toLowerCase();
-    if (parsed.phone !== undefined) updateFields.phone = parsed.phone;
-    if (parsed.role !== undefined) updateFields.role = parsed.role;
-
-    const updated = await User.findByIdAndUpdate(
-      parsed.id,
-      { $set: updateFields },
-      { new: true }
-    );
-    if (!updated) {
+    const existingUser = await User.findById(parsed.id);
+    if (!existingUser) {
       return apiError("User not found.", 404);
+    }
+
+    const wasAdmin = existingUser.role === "admin";
+
+    if (parsed.name !== undefined) existingUser.name = parsed.name;
+    if (parsed.email !== undefined) existingUser.email = parsed.email.toLowerCase();
+    if (parsed.phone !== undefined) existingUser.phone = parsed.phone;
+    if (parsed.role !== undefined) existingUser.role = parsed.role;
+
+    const updated = await existingUser.save();
+
+    // If upgraded to admin, send notification email
+    if (!wasAdmin && updated.role === "admin") {
+      await sendAdminRolePromotionEmail(
+        { email: updated.email, name: updated.name },
+        admin.email
+      );
     }
 
     return apiSuccess({

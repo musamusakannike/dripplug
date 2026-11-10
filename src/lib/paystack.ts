@@ -1,13 +1,19 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
-import { APP_URL, CURRENCY } from "@/config/site";
+import { APP_URL, CURRENCY, LOW_STOCK_THRESHOLD } from "@/config/site";
 import { nairaToKobo } from "@/lib/format";
 import { connectDB } from "@/lib/db";
 import { Order, IOrder } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { Transaction } from "@/models/Transaction";
 import { Coupon } from "@/models/Coupon";
-import { sendOrderConfirmationEmail } from "@/lib/email";
+import {
+  sendOrderConfirmationEmail,
+  sendAdminNewOrderNotification,
+  sendAdminLowStockNotification,
+  sendAdminPaymentMismatchNotification,
+  LowStockAlertItem,
+} from "@/lib/email";
 
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
@@ -182,6 +188,14 @@ export async function processVerifiedPayment(params: {
       { upsert: true }
     );
 
+    // Notify all admins about payment mismatch
+    await sendAdminPaymentMismatchNotification(
+      order,
+      expectedKobo,
+      params.amountInKobo,
+      params.currency || CURRENCY
+    );
+
     return { status: "flagged_mismatch", order };
   }
 
@@ -264,8 +278,43 @@ export async function processVerifiedPayment(params: {
     return { status: "already_processed", order: freshOrder };
   }
 
-  // 4. Send fail-safe confirmation email outside the DB transaction
-  await sendOrderConfirmationEmail(updatedOrder);
+  const fulfilledOrder: IOrder = updatedOrder;
 
-  return { status: "fulfilled", order: updatedOrder };
+  // 4. Send fail-safe emails outside the DB transaction
+  // A. Customer order confirmation
+  await sendOrderConfirmationEmail(fulfilledOrder);
+
+  // B. Admin new order alert (notifies EVERY admin!)
+  await sendAdminNewOrderNotification(fulfilledOrder);
+
+  // C. Check if any purchased variant is at or below the low stock threshold
+  try {
+    const lowStockAlerts: LowStockAlertItem[] = [];
+    for (const item of fulfilledOrder.items) {
+      const prod = await Product.findById(item.productId).lean();
+      if (prod) {
+        const variant = prod.variants.find(
+          (v) => v.size === item.size && v.color === item.color
+        );
+        if (variant && variant.stock <= LOW_STOCK_THRESHOLD) {
+          lowStockAlerts.push({
+            name: item.name,
+            size: item.size,
+            color: item.color,
+            sku: variant.sku || item.sku,
+            remainingStock: variant.stock,
+            productId: String(prod._id),
+          });
+        }
+      }
+    }
+
+    if (lowStockAlerts.length > 0) {
+      await sendAdminLowStockNotification(lowStockAlerts);
+    }
+  } catch (stockErr) {
+    console.error("[Email Low Stock Check Warning]:", stockErr);
+  }
+
+  return { status: "fulfilled", order: fulfilledOrder };
 }

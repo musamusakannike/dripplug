@@ -9,6 +9,7 @@ import {
   getClientIp,
   handleApiException,
 } from "@/lib/rate-limit";
+import { sendNewsletterWelcomeEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,17 +21,24 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { email } = newsletterSchema.parse(body);
+    const normalizedEmail = email.toLowerCase().trim();
 
     if (isDatabaseConfigured()) {
       await connectDB();
+      const existing = await Newsletter.findOne({ email: normalizedEmail });
       await Newsletter.findOneAndUpdate(
-        { email: email.toLowerCase() },
-        { email: email.toLowerCase(), subscribedAt: new Date() },
+        { email: normalizedEmail },
+        { email: normalizedEmail, subscribedAt: new Date() },
         { upsert: true, new: true }
       );
+      if (!existing) {
+        await sendNewsletterWelcomeEmail(normalizedEmail);
+      }
+    } else {
+      await sendNewsletterWelcomeEmail(normalizedEmail);
     }
 
-    return apiSuccess({ subscribed: true, email });
+    return apiSuccess({ subscribed: true, email: normalizedEmail });
   } catch (err) {
     return handleApiException(err);
   }

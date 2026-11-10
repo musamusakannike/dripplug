@@ -7,6 +7,7 @@ import {
 } from "@/lib/auth";
 import { User } from "@/models/User";
 import { SessionUser } from "@/types";
+import { sendCustomerWelcomeEmail } from "@/lib/email";
 
 const DEFAULT_GOOGLE_CLIENT_ID =
   "459411913645-in46ojva228tplj1lhtbgncg961763i6.apps.googleusercontent.com";
@@ -96,6 +97,7 @@ export async function GET(req: NextRequest) {
           avatar: profile.picture || "",
           role: email === "admin@dripplug.com.ng" ? "admin" : "customer",
         });
+        await sendCustomerWelcomeEmail({ email: dbUser.email, name: dbUser.name });
       } else {
         if (!dbUser.firebaseUid) dbUser.firebaseUid = profile.sub;
         if (!dbUser.name && displayName) dbUser.name = displayName;

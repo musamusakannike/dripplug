@@ -19,6 +19,7 @@ import {
   handleApiException,
 } from "@/lib/rate-limit";
 import { SessionUser } from "@/types";
+import { sendCustomerWelcomeEmail } from "@/lib/email";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
             avatar: decoded.picture || "",
             role: email === "admin@dripplug.com.ng" ? "admin" : "customer",
           });
+          await sendCustomerWelcomeEmail({ email: dbUser.email, name: dbUser.name });
         } else {
           if (!dbUser.firebaseUid) {
             dbUser.firebaseUid = decoded.uid;
@@ -136,6 +138,7 @@ export async function POST(req: NextRequest) {
           password: hashPassword(password),
           role: email === "admin@dripplug.com.ng" ? "admin" : "customer",
         });
+        await sendCustomerWelcomeEmail({ email: dbUser.email, name: dbUser.name });
       }
 
       const sessionUser: SessionUser = {
