@@ -260,7 +260,7 @@ export function AdminDashboardClient({
     return totalStock <= LOW_STOCK_THRESHOLD;
   });
 
-  // Cloudflare R2 direct upload
+  // Cloudflare R2 upload via same-origin server endpoint (avoids R2 browser CORS issues)
   async function handleR2FileUpload(
     file: File,
     folder: "products" | "categories",
@@ -269,41 +269,32 @@ export function AdminDashboardClient({
     setUploadingR2(true);
     setUploadProgress(5);
     try {
-      const presignRes = await fetch("/api/admin/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          folder,
-        }),
-      });
-      const presignJson = await presignRes.json();
-      if (!presignRes.ok || !presignJson.ok) {
-        throw new Error(presignJson.error || "Could not get upload credentials");
-      }
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", folder);
 
-      const { uploadUrl, publicUrl } = presignJson.data;
-
-      await new Promise<void>((resolve, reject) => {
+      const publicUrl = await new Promise<string>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.open("POST", "/api/admin/upload");
         xhr.upload.onprogress = (evt) => {
           if (evt.lengthComputable) {
             setUploadProgress(Math.round((evt.loaded / evt.total) * 100));
           }
         };
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve();
-          } else {
+          try {
+            const res = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300 && res?.ok && res?.data?.publicUrl) {
+              resolve(res.data.publicUrl);
+            } else {
+              reject(new Error(res?.error || `Upload failed with status ${xhr.status}`));
+            }
+          } catch {
             reject(new Error(`Upload failed with status ${xhr.status}`));
           }
         };
         xhr.onerror = () => reject(new Error("Network error during upload"));
-        xhr.send(file);
+        xhr.send(formData);
       });
 
       onUploaded(publicUrl);
