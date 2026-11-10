@@ -1,27 +1,26 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { MessageCircle, X } from "lucide-react";
 import { WHATSAPP_NUMBER } from "@/config/site";
 
 const STORAGE_KEY = "dripplug_whatsapp_fab_dismissed_v1";
+const emptySubscribe = () => () => {};
 
 export function WhatsAppFab() {
   const pathname = usePathname();
-  const [dismissed, setDismissed] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    try {
-      if (sessionStorage.getItem(STORAGE_KEY) === "1") {
-        setDismissed(true);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return sessionStorage.getItem(STORAGE_KEY) === "1";
+      } catch {
+        return false;
       }
-    } catch {
-      // Ignore storage access errors
     }
-  }, []);
+    return false;
+  });
 
   // Hide on admin, checkout, and login pages
   const isHiddenRoute =

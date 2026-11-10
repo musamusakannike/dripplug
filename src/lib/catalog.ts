@@ -45,6 +45,10 @@ export function serializeProductDoc(doc: IProduct | Record<string, unknown>): Se
     tags: Array.isArray(d.tags) ? (d.tags as string[]) : [],
     isFeatured: Boolean(d.isFeatured),
     isActive: d.isActive !== false,
+    isNewArrival: Boolean(d.isNewArrival),
+    isBestSeller: Boolean(d.isBestSeller),
+    newArrivalOrder: Number(d.newArrivalOrder || 0),
+    bestSellerOrder: Number(d.bestSellerOrder || 0),
     soldCount: Number(d.soldCount || 0),
     ratingAverage: Number(d.ratingAverage || 0),
     ratingCount: Number(d.ratingCount || 0),
@@ -95,15 +99,33 @@ export async function getHomePageData() {
   if (isDatabaseConfigured()) {
     try {
       await connectDB();
+
+      // Check manual selections first
+      const [manualNewArrivalsDocs, manualTopSellingDocs] = await Promise.all([
+        Product.find({ isActive: true, isNewArrival: true })
+          .sort({ newArrivalOrder: 1, createdAt: -1 })
+          .limit(8)
+          .lean(),
+        Product.find({ isActive: true, isBestSeller: true })
+          .sort({ bestSellerOrder: 1, soldCount: -1 })
+          .limit(8)
+          .lean(),
+      ]);
+
+      // Fallback to current method if empty
       const [newArrivalsDocs, topSellingDocs, totalActiveProducts, verifiedReviewsDocs] =
         await Promise.all([
-          Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(4).lean(),
-          Product.find({ isActive: true }).sort({ soldCount: -1 }).limit(4).lean(),
+          manualNewArrivalsDocs.length > 0
+            ? Promise.resolve(manualNewArrivalsDocs)
+            : Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(4).lean(),
+          manualTopSellingDocs.length > 0
+            ? Promise.resolve(manualTopSellingDocs)
+            : Product.find({ isActive: true }).sort({ soldCount: -1 }).limit(4).lean(),
           Product.countDocuments({ isActive: true }),
           Review.find({ status: "published" }).sort({ createdAt: -1 }).limit(8).lean(),
         ]);
 
-      if (newArrivalsDocs.length > 0) {
+      if (newArrivalsDocs.length > 0 || topSellingDocs.length > 0) {
         return {
           newArrivals: newArrivalsDocs.map(serializeProductDoc),
           topSelling: topSellingDocs.map(serializeProductDoc),
@@ -126,8 +148,17 @@ export async function getHomePageData() {
   }
 
   const allSample = getFallbackSampleProducts();
-  const topSelling = [...allSample].sort((a, b) => b.soldCount - a.soldCount).slice(0, 4);
-  const newArrivals = allSample.slice(0, 4);
+  const manualNew = allSample.filter((p) => p.isNewArrival);
+  const manualTop = allSample.filter((p) => p.isBestSeller);
+
+  const topSelling =
+    manualTop.length > 0
+      ? manualTop.slice(0, 8)
+      : [...allSample].sort((a, b) => b.soldCount - a.soldCount).slice(0, 4);
+  const newArrivals =
+    manualNew.length > 0
+      ? manualNew.slice(0, 8)
+      : allSample.slice(0, 4);
 
   return {
     newArrivals,

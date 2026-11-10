@@ -172,8 +172,20 @@ export const adminProductSchema = z.object({
   tags: z.array(z.string().trim()).default([]),
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
+  isNewArrival: z.boolean().default(false),
+  isBestSeller: z.boolean().default(false),
+  newArrivalOrder: z.number().int().default(0),
+  bestSellerOrder: z.number().int().default(0),
   metaTitle: z.string().trim().max(120).optional(),
   metaDescription: z.string().trim().max(250).optional(),
+});
+
+export const adminCurationSchema = z.object({
+  newArrivalIds: z.array(z.string().trim()).optional(),
+  bestSellerIds: z.array(z.string().trim()).optional(),
+  action: z
+    .enum(["update", "clear_new_arrivals", "clear_best_sellers", "clear_all"])
+    .optional(),
 });
 
 export const adminOrderStatusSchema = z.object({

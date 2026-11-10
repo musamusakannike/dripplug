@@ -84,14 +84,26 @@ export async function PUT(req: NextRequest) {
       return apiError("Product not found.", 404);
     }
 
-    // Quick toggle shortcut (isActive and/or isFeatured without full schema payload)
+    // Quick toggle shortcut (isActive, isFeatured, isNewArrival, isBestSeller, newArrivalOrder, bestSellerOrder)
+    const allowedQuickKeys = new Set([
+      "isActive",
+      "isFeatured",
+      "isNewArrival",
+      "isBestSeller",
+      "newArrivalOrder",
+      "bestSellerOrder",
+    ]);
     const restKeys = Object.keys(rest);
     if (
       restKeys.length > 0 &&
-      restKeys.every((k) => k === "isActive" || k === "isFeatured")
+      restKeys.every((k) => allowedQuickKeys.has(k))
     ) {
       if (typeof rest.isActive === "boolean") existing.isActive = rest.isActive;
       if (typeof rest.isFeatured === "boolean") existing.isFeatured = rest.isFeatured;
+      if (typeof rest.isNewArrival === "boolean") existing.isNewArrival = rest.isNewArrival;
+      if (typeof rest.isBestSeller === "boolean") existing.isBestSeller = rest.isBestSeller;
+      if (typeof rest.newArrivalOrder === "number") existing.newArrivalOrder = rest.newArrivalOrder;
+      if (typeof rest.bestSellerOrder === "number") existing.bestSellerOrder = rest.bestSellerOrder;
       await existing.save();
       revalidatePath("/");
       revalidatePath("/shop");
@@ -129,6 +141,10 @@ export async function PUT(req: NextRequest) {
     existing.tags = parsed.tags;
     existing.isFeatured = parsed.isFeatured;
     existing.isActive = parsed.isActive;
+    existing.isNewArrival = parsed.isNewArrival;
+    existing.isBestSeller = parsed.isBestSeller;
+    existing.newArrivalOrder = parsed.newArrivalOrder;
+    existing.bestSellerOrder = parsed.bestSellerOrder;
     existing.metaTitle = parsed.metaTitle;
     existing.metaDescription = parsed.metaDescription;
 

@@ -45,6 +45,10 @@ export interface SerializedProduct {
   tags: string[];
   isFeatured: boolean;
   isActive: boolean;
+  isNewArrival?: boolean;
+  isBestSeller?: boolean;
+  newArrivalOrder?: number;
+  bestSellerOrder?: number;
   soldCount: number;
   ratingAverage: number;
   ratingCount: number;

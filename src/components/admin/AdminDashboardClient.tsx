@@ -23,18 +23,18 @@ import {
   Pencil,
   Search,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Menu,
   X,
-  Bell,
   LogOut,
   ExternalLink,
   CheckCircle2,
   Clock,
   TrendingUp,
   MapPin,
-  Filter,
+  Sparkles,
+  ArrowUp,
+  ArrowDown,
+  RotateCcw,
 } from "lucide-react";
 import {
   AVAILABLE_COLORS,
@@ -119,6 +119,7 @@ export function AdminDashboardClient({
     | "overview"
     | "orders"
     | "products"
+    | "highlights"
     | "categories"
     | "coupons"
     | "reviews"
@@ -158,6 +159,25 @@ export function AdminDashboardClient({
   >([{ size: "L", color: "Black", sku: "SKU-INIT", stock: 15 }]);
   const [prodIsFeatured, setProdIsFeatured] = useState(false);
   const [prodIsActive, setProdIsActive] = useState(true);
+  const [prodIsNewArrival, setProdIsNewArrival] = useState(false);
+  const [prodIsBestSeller, setProdIsBestSeller] = useState(false);
+
+  // Homepage Highlights curation state
+  const [curatedNewArrivalIds, setCuratedNewArrivalIds] = useState<string[]>(() =>
+    initialProducts
+      .filter((p) => p.isNewArrival)
+      .sort((a, b) => (a.newArrivalOrder || 0) - (b.newArrivalOrder || 0))
+      .map((p) => p._id)
+  );
+  const [curatedBestSellerIds, setCuratedBestSellerIds] = useState<string[]>(() =>
+    initialProducts
+      .filter((p) => p.isBestSeller)
+      .sort((a, b) => (a.bestSellerOrder || 0) - (b.bestSellerOrder || 0))
+      .map((p) => p._id)
+  );
+  const [savingCurations, setSavingCurations] = useState(false);
+  const [selectedNewArrivalAddId, setSelectedNewArrivalAddId] = useState("");
+  const [selectedBestSellerAddId, setSelectedBestSellerAddId] = useState("");
 
   // Category Modal
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -332,6 +352,8 @@ export function AdminDashboardClient({
     ]);
     setProdIsFeatured(false);
     setProdIsActive(true);
+    setProdIsNewArrival(false);
+    setProdIsBestSeller(false);
     setShowProductModal(true);
   }
 
@@ -352,6 +374,8 @@ export function AdminDashboardClient({
     );
     setProdIsFeatured(p.isFeatured);
     setProdIsActive(p.isActive);
+    setProdIsNewArrival(Boolean(p.isNewArrival));
+    setProdIsBestSeller(Boolean(p.isBestSeller));
     setShowProductModal(true);
   }
 
@@ -393,6 +417,8 @@ export function AdminDashboardClient({
         tags: [prodCatSlug],
         isFeatured: prodIsFeatured,
         isActive: prodIsActive,
+        isNewArrival: prodIsNewArrival,
+        isBestSeller: prodIsBestSeller,
       };
 
       const isEditing = Boolean(editingProduct);
@@ -441,6 +467,163 @@ export function AdminDashboardClient({
       }
     } catch {
       addToast("Failed to toggle product status", "error");
+    }
+  }
+
+  async function handleToggleProductNewArrival(prod: SerializedProduct) {
+    try {
+      const nextValue = !prod.isNewArrival;
+      const res = await fetch("/api/admin/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: prod._id, isNewArrival: nextValue }),
+      });
+      if (res.ok) {
+        setProducts(
+          products.map((p) => (p._id === prod._id ? { ...p, isNewArrival: nextValue } : p))
+        );
+        if (nextValue) {
+          if (!curatedNewArrivalIds.includes(prod._id)) {
+            setCuratedNewArrivalIds([...curatedNewArrivalIds, prod._id]);
+          }
+        } else {
+          setCuratedNewArrivalIds(curatedNewArrivalIds.filter((id) => id !== prod._id));
+        }
+        addToast(
+          nextValue
+            ? `Added "${prod.name}" to New Arrivals`
+            : `Removed "${prod.name}" from New Arrivals`,
+          "info"
+        );
+        router.refresh();
+      }
+    } catch {
+      addToast("Failed to toggle New Arrival status", "error");
+    }
+  }
+
+  async function handleToggleProductBestSeller(prod: SerializedProduct) {
+    try {
+      const nextValue = !prod.isBestSeller;
+      const res = await fetch("/api/admin/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: prod._id, isBestSeller: nextValue }),
+      });
+      if (res.ok) {
+        setProducts(
+          products.map((p) => (p._id === prod._id ? { ...p, isBestSeller: nextValue } : p))
+        );
+        if (nextValue) {
+          if (!curatedBestSellerIds.includes(prod._id)) {
+            setCuratedBestSellerIds([...curatedBestSellerIds, prod._id]);
+          }
+        } else {
+          setCuratedBestSellerIds(curatedBestSellerIds.filter((id) => id !== prod._id));
+        }
+        addToast(
+          nextValue
+            ? `Marked "${prod.name}" as Best Seller`
+            : `Unmarked "${prod.name}" as Best Seller`,
+          "info"
+        );
+        router.refresh();
+      }
+    } catch {
+      addToast("Failed to toggle Best Seller status", "error");
+    }
+  }
+
+  // Highlights Curation Helpers
+  function addProductToNewArrivals(productId: string) {
+    if (!productId || curatedNewArrivalIds.includes(productId)) return;
+    setCuratedNewArrivalIds([...curatedNewArrivalIds, productId]);
+    setSelectedNewArrivalAddId("");
+  }
+
+  function removeProductFromNewArrivals(productId: string) {
+    setCuratedNewArrivalIds(curatedNewArrivalIds.filter((id) => id !== productId));
+  }
+
+  function moveNewArrivalUp(index: number) {
+    if (index <= 0) return;
+    const next = [...curatedNewArrivalIds];
+    const temp = next[index - 1];
+    next[index - 1] = next[index];
+    next[index] = temp;
+    setCuratedNewArrivalIds(next);
+  }
+
+  function moveNewArrivalDown(index: number) {
+    if (index >= curatedNewArrivalIds.length - 1) return;
+    const next = [...curatedNewArrivalIds];
+    const temp = next[index + 1];
+    next[index + 1] = next[index];
+    next[index] = temp;
+    setCuratedNewArrivalIds(next);
+  }
+
+  function clearNewArrivals() {
+    setCuratedNewArrivalIds([]);
+  }
+
+  function addProductToBestSellers(productId: string) {
+    if (!productId || curatedBestSellerIds.includes(productId)) return;
+    setCuratedBestSellerIds([...curatedBestSellerIds, productId]);
+    setSelectedBestSellerAddId("");
+  }
+
+  function removeProductFromBestSellers(productId: string) {
+    setCuratedBestSellerIds(curatedBestSellerIds.filter((id) => id !== productId));
+  }
+
+  function moveBestSellerUp(index: number) {
+    if (index <= 0) return;
+    const next = [...curatedBestSellerIds];
+    const temp = next[index - 1];
+    next[index - 1] = next[index];
+    next[index] = temp;
+    setCuratedBestSellerIds(next);
+  }
+
+  function moveBestSellerDown(index: number) {
+    if (index >= curatedBestSellerIds.length - 1) return;
+    const next = [...curatedBestSellerIds];
+    const temp = next[index + 1];
+    next[index + 1] = next[index];
+    next[index] = temp;
+    setCuratedBestSellerIds(next);
+  }
+
+  function clearBestSellers() {
+    setCuratedBestSellerIds([]);
+  }
+
+  async function handleSaveCurations() {
+    setSavingCurations(true);
+    try {
+      const res = await fetch("/api/admin/curations", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          newArrivalIds: curatedNewArrivalIds,
+          bestSellerIds: curatedBestSellerIds,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        addToast(json.error || "Failed to update highlights", "error");
+      } else {
+        addToast("Homepage highlights saved successfully!", "success");
+        if (json.data?.products) {
+          setProducts(json.data.products);
+        }
+        router.refresh();
+      }
+    } catch {
+      addToast("Network error updating highlights", "error");
+    } finally {
+      setSavingCurations(false);
     }
   }
 
@@ -939,6 +1122,8 @@ export function AdminDashboardClient({
     if (productCategoryFilter !== "all" && p.categorySlug !== productCategoryFilter) return false;
     if (productStatusFilter === "active" && !p.isActive) return false;
     if (productStatusFilter === "hidden" && p.isActive) return false;
+    if (productStatusFilter === "new_arrival" && !p.isNewArrival) return false;
+    if (productStatusFilter === "best_seller" && !p.isBestSeller) return false;
     if (productSearchQuery.trim()) {
       const q = productSearchQuery.toLowerCase();
       const match =
@@ -964,7 +1149,7 @@ export function AdminDashboardClient({
 
   // Nav Items config
   interface AdminNavTab {
-    id: "overview" | "orders" | "products" | "categories" | "coupons" | "reviews" | "users" | "newsletter";
+    id: "overview" | "orders" | "products" | "highlights" | "categories" | "coupons" | "reviews" | "users" | "newsletter";
     label: string;
     icon: React.ElementType;
     badge?: number | string;
@@ -974,12 +1159,47 @@ export function AdminDashboardClient({
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "orders", label: "Orders", icon: Package, badge: pendingOrders.length },
     { id: "products", label: "Products", icon: ShoppingBag, badge: lowStockProducts.length > 0 ? "!" : undefined },
+    {
+      id: "highlights",
+      label: "Highlights",
+      icon: Sparkles,
+      badge:
+        curatedNewArrivalIds.length + curatedBestSellerIds.length > 0
+          ? curatedNewArrivalIds.length + curatedBestSellerIds.length
+          : undefined,
+    },
     { id: "categories", label: "Categories", icon: FolderTree },
     { id: "coupons", label: "Coupons", icon: Tag },
     { id: "reviews", label: "Reviews", icon: MessageSquare },
     { id: "users", label: "Users & Staff", icon: Users },
     { id: "newsletter", label: "Subscribers", icon: Mail },
   ];
+
+  const curatedNewArrivals = curatedNewArrivalIds
+    .map((id) => products.find((p) => p._id === id))
+    .filter((p): p is SerializedProduct => Boolean(p));
+
+  const curatedBestSellers = curatedBestSellerIds
+    .map((id) => products.find((p) => p._id === id))
+    .filter((p): p is SerializedProduct => Boolean(p));
+
+  const fallbackNewArrivals = [...products]
+    .filter((p) => p.isActive)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 4);
+
+  const fallbackBestSellers = [...products]
+    .filter((p) => p.isActive)
+    .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
+    .slice(0, 4);
+
+  const availableForNewArrivals = products.filter(
+    (p) => p.isActive && !curatedNewArrivalIds.includes(p._id)
+  );
+
+  const availableForBestSellers = products.filter(
+    (p) => p.isActive && !curatedBestSellerIds.includes(p._id)
+  );
 
   const currentTabTitle =
     navItems.find((t) => t.id === activeTab)?.label || "Admin Portal";
@@ -1599,6 +1819,8 @@ export function AdminDashboardClient({
                       <option value="all">All Statuses</option>
                       <option value="active">Active Only</option>
                       <option value="hidden">Hidden Only</option>
+                      <option value="new_arrival">New Arrivals Only</option>
+                      <option value="best_seller">Best Sellers Only</option>
                     </select>
                     <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
@@ -1642,6 +1864,7 @@ export function AdminDashboardClient({
                       <th className="py-3.5 px-4 font-medium">Base Price</th>
                       <th className="py-3.5 px-4 font-medium">Stock</th>
                       <th className="py-3.5 px-4 font-medium">Sold</th>
+                      <th className="py-3.5 px-4 font-medium">Homepage</th>
                       <th className="py-3.5 px-4 font-medium">Visibility</th>
                       <th className="py-3.5 px-4 font-medium text-right">Actions</th>
                     </tr>
@@ -1649,7 +1872,7 @@ export function AdminDashboardClient({
                   <tbody className="divide-y divide-gray-100/60 text-slate-700">
                     {filteredProducts.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-gray-400 text-xs">
+                        <td colSpan={8} className="py-12 text-center text-gray-400 text-xs">
                           No campus products found matching your search.
                         </td>
                       </tr>
@@ -1696,6 +1919,44 @@ export function AdminDashboardClient({
                               </span>
                             </td>
                             <td className="py-3.5 px-4 font-semibold">{p.soldCount}</td>
+                            <td className="py-3.5 px-4">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleProductNewArrival(p)}
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    p.isNewArrival
+                                      ? "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
+                                      : "text-gray-400 border border-dashed border-gray-200 hover:text-blue-700 hover:border-blue-300"
+                                  }`}
+                                  title={
+                                    p.isNewArrival
+                                      ? "Click to remove from New Arrivals"
+                                      : "Click to mark as New Arrival"
+                                  }
+                                >
+                                  <Sparkles className="w-3 h-3" />
+                                  <span>New</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleProductBestSeller(p)}
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    p.isBestSeller
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+                                      : "text-gray-400 border border-dashed border-gray-200 hover:text-amber-700 hover:border-amber-300"
+                                  }`}
+                                  title={
+                                    p.isBestSeller
+                                      ? "Click to remove from Best Sellers"
+                                      : "Click to mark as Best Seller"
+                                  }
+                                >
+                                  <TrendingUp className="w-3 h-3" />
+                                  <span>Top Seller</span>
+                                </button>
+                              </div>
+                            </td>
                             <td className="py-3.5 px-4">
                               <button
                                 type="button"
@@ -1747,7 +2008,391 @@ export function AdminDashboardClient({
             </div>
           )}
 
-          {/* ==================== 4. CATEGORIES ==================== */}
+          {/* ==================== 4. HOMEPAGE HIGHLIGHTS & CURATIONS ==================== */}
+          {activeTab === "highlights" && (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-lg bg-black text-white">
+                      <Sparkles className="w-4 h-4" />
+                    </span>
+                    <h2 className="text-base font-bold text-slate-800">
+                      Homepage Highlights &amp; Curations
+                    </h2>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 max-w-2xl">
+                    Manually select which products appear in the &ldquo;New arrivals&rdquo; and &ldquo;Top selling&rdquo; sections on your storefront. If a section is left empty, Dripplug seamlessly falls back to showing the latest arrivals or top-selling products automatically.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <Link
+                    href="/"
+                    target="_blank"
+                    className="px-3.5 py-2 rounded-xl border border-gray-200 text-slate-700 hover:bg-gray-50 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>View Storefront</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleSaveCurations}
+                    disabled={savingCurations}
+                    className="px-5 py-2 rounded-xl bg-black text-white hover:bg-neutral-800 font-semibold text-xs shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{savingCurations ? "Saving..." : "Save Highlights"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid with New Arrivals & Best Sellers */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 1. NEW ARRIVALS */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-2xs p-5 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    {/* Section Top Info */}
+                    <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-800 text-sm">New Arrivals</h3>
+                          {curatedNewArrivals.length > 0 ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                              Manual ({curatedNewArrivals.length} items)
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                              Auto Fallback (4 newest)
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Featured in the first product grid on the homepage
+                        </p>
+                      </div>
+
+                      {curatedNewArrivals.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={clearNewArrivals}
+                          className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Reset to Auto</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Add Product Dropdown */}
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <select
+                          value={selectedNewArrivalAddId}
+                          onChange={(e) => setSelectedNewArrivalAddId(e.target.value)}
+                          className="w-full appearance-none bg-slate-50 border border-gray-200/80 px-3.5 py-2 pr-8 rounded-xl text-xs text-slate-700 font-medium outline-none focus:bg-white focus:border-black cursor-pointer"
+                        >
+                          <option value="">Select product to add...</option>
+                          {availableForNewArrivals.map((p) => (
+                            <option key={p._id} value={p._id}>
+                              {p.name} ({formatPrice(p.basePrice)})
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!selectedNewArrivalAddId}
+                        onClick={() => addProductToNewArrivals(selectedNewArrivalAddId)}
+                        className="px-3.5 py-2 rounded-xl bg-black text-white hover:bg-neutral-800 font-semibold text-xs transition-colors cursor-pointer disabled:opacity-40 shrink-0 inline-flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add</span>
+                      </button>
+                    </div>
+
+                    {/* Products List */}
+                    {curatedNewArrivals.length > 0 ? (
+                      <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                        {curatedNewArrivals.map((prod, idx) => (
+                          <div
+                            key={prod._id}
+                            className="flex items-center justify-between p-2.5 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-gray-100 transition-colors gap-3"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-5 text-center text-xs font-bold text-gray-400 shrink-0">
+                                #{idx + 1}
+                              </span>
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-gray-200 shrink-0 relative">
+                                <Image
+                                  src={prod.images[0] || ""}
+                                  alt={prod.name}
+                                  fill
+                                  sizes="40px"
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-slate-800 truncate">
+                                  {prod.name}
+                                </p>
+                                <p className="text-[11px] text-gray-400 truncate">
+                                  {prod.categorySlug} &bull; {formatPrice(prod.basePrice)}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveNewArrivalUp(idx)}
+                                className="p-1 rounded-md text-gray-400 hover:text-black hover:bg-gray-200/60 disabled:opacity-20 cursor-pointer"
+                                title="Move Up"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === curatedNewArrivals.length - 1}
+                                onClick={() => moveNewArrivalDown(idx)}
+                                className="p-1 rounded-md text-gray-400 hover:text-black hover:bg-gray-200/60 disabled:opacity-20 cursor-pointer"
+                                title="Move Down"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeProductFromNewArrivals(prod._id)}
+                                className="p-1 rounded-md text-rose-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer ml-1"
+                                title="Remove from New Arrivals"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 rounded-xl p-4 border border-dashed border-gray-200 text-center space-y-3">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-700">
+                            Automatic fallback active
+                          </p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            Showing the 4 most recently added products by creation date:
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-left">
+                          {fallbackNewArrivals.map((fp) => (
+                            <div
+                              key={fp._id}
+                              className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-100"
+                            >
+                              <div className="w-8 h-8 rounded-md overflow-hidden bg-gray-100 relative shrink-0">
+                                <Image
+                                  src={fp.images[0] || ""}
+                                  alt={fp.name}
+                                  fill
+                                  sizes="32px"
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-semibold text-slate-800 truncate">
+                                  {fp.name}
+                                </p>
+                                <p className="text-[10px] text-gray-400">
+                                  {formatPrice(fp.basePrice)}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+                    💡 Click &ldquo;Save Highlights&rdquo; above after making changes to publish them to your storefront.
+                  </p>
+                </div>
+
+                {/* 2. BEST SELLERS */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-2xs p-5 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    {/* Section Top Info */}
+                    <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-800 text-sm">Top Selling (Best Sellers)</h3>
+                          {curatedBestSellers.length > 0 ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                              Manual ({curatedBestSellers.length} items)
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                              Auto Fallback (4 top sold)
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Featured in the second product grid on the homepage
+                        </p>
+                      </div>
+
+                      {curatedBestSellers.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={clearBestSellers}
+                          className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Reset to Auto</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Add Product Dropdown */}
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <select
+                          value={selectedBestSellerAddId}
+                          onChange={(e) => setSelectedBestSellerAddId(e.target.value)}
+                          className="w-full appearance-none bg-slate-50 border border-gray-200/80 px-3.5 py-2 pr-8 rounded-xl text-xs text-slate-700 font-medium outline-none focus:bg-white focus:border-black cursor-pointer"
+                        >
+                          <option value="">Select product to add...</option>
+                          {availableForBestSellers.map((p) => (
+                            <option key={p._id} value={p._id}>
+                              {p.name} ({p.soldCount} sold)
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!selectedBestSellerAddId}
+                        onClick={() => addProductToBestSellers(selectedBestSellerAddId)}
+                        className="px-3.5 py-2 rounded-xl bg-black text-white hover:bg-neutral-800 font-semibold text-xs transition-colors cursor-pointer disabled:opacity-40 shrink-0 inline-flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add</span>
+                      </button>
+                    </div>
+
+                    {/* Products List */}
+                    {curatedBestSellers.length > 0 ? (
+                      <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                        {curatedBestSellers.map((prod, idx) => (
+                          <div
+                            key={prod._id}
+                            className="flex items-center justify-between p-2.5 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-gray-100 transition-colors gap-3"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-5 text-center text-xs font-bold text-gray-400 shrink-0">
+                                #{idx + 1}
+                              </span>
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-gray-200 shrink-0 relative">
+                                <Image
+                                  src={prod.images[0] || ""}
+                                  alt={prod.name}
+                                  fill
+                                  sizes="40px"
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-slate-800 truncate">
+                                  {prod.name}
+                                </p>
+                                <p className="text-[11px] text-gray-400 truncate">
+                                  {prod.categorySlug} &bull; {prod.soldCount} units sold
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveBestSellerUp(idx)}
+                                className="p-1 rounded-md text-gray-400 hover:text-black hover:bg-gray-200/60 disabled:opacity-20 cursor-pointer"
+                                title="Move Up"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === curatedBestSellers.length - 1}
+                                onClick={() => moveBestSellerDown(idx)}
+                                className="p-1 rounded-md text-gray-400 hover:text-black hover:bg-gray-200/60 disabled:opacity-20 cursor-pointer"
+                                title="Move Down"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeProductFromBestSellers(prod._id)}
+                                className="p-1 rounded-md text-rose-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer ml-1"
+                                title="Remove from Best Sellers"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 rounded-xl p-4 border border-dashed border-gray-200 text-center space-y-3">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-700">
+                            Automatic fallback active
+                          </p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            Showing the top 4 products by order sales volume:
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-left">
+                          {fallbackBestSellers.map((fp) => (
+                            <div
+                              key={fp._id}
+                              className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-100"
+                            >
+                              <div className="w-8 h-8 rounded-md overflow-hidden bg-gray-100 relative shrink-0">
+                                <Image
+                                  src={fp.images[0] || ""}
+                                  alt={fp.name}
+                                  fill
+                                  sizes="32px"
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-semibold text-slate-800 truncate">
+                                  {fp.name}
+                                </p>
+                                <p className="text-[10px] text-gray-400">
+                                  {fp.soldCount} sold &bull; {formatPrice(fp.basePrice)}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+                    💡 Click &ldquo;Save Highlights&rdquo; above after making changes to publish them to your storefront.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ==================== 5. CATEGORIES ==================== */}
           {activeTab === "categories" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -2390,7 +3035,7 @@ export function AdminDashboardClient({
             )}
           </div>
 
-          <div className="flex items-center gap-6 text-xs font-semibold text-slate-700">
+          <div className="flex flex-wrap items-center gap-5 text-xs font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-gray-100">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -2398,7 +3043,7 @@ export function AdminDashboardClient({
                 onChange={(e) => setProdIsActive(e.target.checked)}
                 className="w-4 h-4 rounded text-black cursor-pointer"
               />
-              <span>Active in Storefront</span>
+              <span>Active</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -2407,7 +3052,25 @@ export function AdminDashboardClient({
                 onChange={(e) => setProdIsFeatured(e.target.checked)}
                 className="w-4 h-4 rounded text-black cursor-pointer"
               />
-              <span>Feature on Homepage</span>
+              <span>Featured</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={prodIsNewArrival}
+                onChange={(e) => setProdIsNewArrival(e.target.checked)}
+                className="w-4 h-4 rounded text-black cursor-pointer"
+              />
+              <span className="text-blue-700">New Arrival</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={prodIsBestSeller}
+                onChange={(e) => setProdIsBestSeller(e.target.checked)}
+                className="w-4 h-4 rounded text-black cursor-pointer"
+              />
+              <span className="text-amber-700">Best Seller</span>
             </label>
           </div>
 

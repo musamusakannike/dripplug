@@ -34,6 +34,10 @@ export interface IProduct extends Document {
   tags: string[];
   isFeatured: boolean;
   isActive: boolean;
+  isNewArrival: boolean;
+  isBestSeller: boolean;
+  newArrivalOrder: number;
+  bestSellerOrder: number;
   soldCount: number;
   ratingAverage: number;
   ratingCount: number;
@@ -87,6 +91,10 @@ const ProductSchema = new Schema<IProduct>(
     tags: { type: [String], default: [], index: true },
     isFeatured: { type: Boolean, default: false, index: true },
     isActive: { type: Boolean, default: true, index: true },
+    isNewArrival: { type: Boolean, default: false, index: true },
+    isBestSeller: { type: Boolean, default: false, index: true },
+    newArrivalOrder: { type: Number, default: 0 },
+    bestSellerOrder: { type: Number, default: 0 },
     soldCount: { type: Number, default: 0, index: true },
     ratingAverage: { type: Number, default: 0, min: 0, max: 5 },
     ratingCount: { type: Number, default: 0, min: 0 },
@@ -100,6 +108,8 @@ ProductSchema.index({ name: "text", tags: "text", description: "text" });
 ProductSchema.index({ isActive: 1, categorySlug: 1, basePrice: 1 });
 ProductSchema.index({ isActive: 1, soldCount: -1 });
 ProductSchema.index({ isActive: 1, createdAt: -1 });
+ProductSchema.index({ isActive: 1, isNewArrival: 1, newArrivalOrder: 1 });
+ProductSchema.index({ isActive: 1, isBestSeller: 1, bestSellerOrder: 1 });
 
 export const Product: Model<IProduct> =
   mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);
