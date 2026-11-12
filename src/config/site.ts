@@ -189,33 +189,33 @@ export interface HeroSlide {
 export const HERO_SLIDES: readonly HeroSlide[] = [
   {
     image:
-      "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Students wearing streetwear hoodies and graphic tees on campus",
-    tag: "Campus Streetwear",
+      "https://pub-e699dc64218348259c20e81bc0d9b90b.r2.dev/products/quality-baggy-joggers-cover-1794259778692.jpeg",
+    imageAlt: "Quality Baggy Joggers for campus streetwear",
+    tag: "Baggy Joggers",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1577212017184-80cc0da11082?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Retro club jerseys and vintage sportswear",
+      "https://pub-e699dc64218348259c20e81bc0d9b90b.r2.dev/products/retro-jersey-england.webp",
+    imageAlt: "Retro Football Jersey vintage sportswear",
     tag: "Retro Jerseys",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Oversized baggy cargo jeans and denim streetwear",
-    tag: "Baggy Denim",
+      "https://pub-e699dc64218348259c20e81bc0d9b90b.r2.dev/products/baggy-jean-meelah1.jpeg",
+    imageAlt: "90s Streetwear Baggy Jeans denim",
+    tag: "Baggy Jeans",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Heavyweight campus hoodies and lecture-hall essentials",
-    tag: "Heavyweight Hoodies",
+      "https://pub-e699dc64218348259c20e81bc0d9b90b.r2.dev/products/classic-plain-round-neck-tee-cover-1794261416094.jpeg",
+    imageAlt: "Classic Plain Round Neck Tee",
+    tag: "Round Neck Tees",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Heavyweight graphic round neck tees",
-    tag: "Graphic Tees",
+      "https://pub-e699dc64218348259c20e81bc0d9b90b.r2.dev/products/customizable-trucker-cap-cover-1794284945463.webp",
+    imageAlt: "Customizable Trucker Cap",
+    tag: "Trucker Caps",
   },
 ] as const;
 
@@ -226,8 +226,8 @@ export const HERO_CONFIG = {
   ctaText: "Shop Now",
   ctaHref: "/shop",
   image:
-    "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1200&q=85",
-  imageAlt: "Students wearing streetwear hoodies and graphic tees on campus",
+    "https://pub-e699dc64218348259c20e81bc0d9b90b.r2.dev/products/quality-baggy-joggers-cover-1794259778692.jpeg",
+  imageAlt: "Quality Baggy Joggers for campus streetwear",
   slides: HERO_SLIDES,
   typicalDeliveryStat: "1–4 Hrs",
   typicalDeliveryLabel: "Campus Delivery Window",
