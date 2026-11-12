@@ -3562,7 +3562,7 @@ export function AdminDashboardClient({
                         <p className="text-xs text-gray-400">
                           {it.size} &bull; {it.color} &bull; Qty: {it.quantity}
                         </p>
-                        {it.isCustomized && it.customizationText && (
+                        {it.customizationText && (
                           <div className="mt-1 inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200/90 text-amber-900 rounded-md px-2 py-0.5 text-[11px]">
                             <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
                             <span>Custom: <strong className="font-mono">{it.customizationText}</strong></span>

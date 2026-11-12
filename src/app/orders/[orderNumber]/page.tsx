@@ -184,7 +184,7 @@ export default async function OrderDetailPage({
                     Size: {item.size} &bull; Color: {item.color} &bull; Qty:{" "}
                     {item.quantity}
                   </p>
-                  {item.isCustomized && item.customizationText && (
+                  {item.customizationText && (
                     <div className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-900 bg-amber-50 border border-amber-200/90 rounded-lg px-2.5 py-1">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
                       <div className="min-w-0">

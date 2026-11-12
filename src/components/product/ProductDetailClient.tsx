@@ -60,6 +60,14 @@ export function ProductDetailClient({
   const [addedState, setAddedState] = useState(false);
   const [wantsCustomization, setWantsCustomization] = useState(false);
   const [customizationText, setCustomizationText] = useState("");
+  const [retroTeam, setRetroTeam] = useState("");
+  const [retroYear, setRetroYear] = useState("");
+
+  const isRetroJersey = Boolean(
+    product.isRetroJersey ||
+    product.slug.includes("retro") ||
+    product.tags?.some((t) => t.toLowerCase().includes("retro"))
+  );
 
   const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">(
     "reviews"
@@ -141,6 +149,21 @@ export function ProductDetailClient({
     }
 
     const isCustomized = Boolean(wantsCustomization && product.isCustomizable && customizationText.trim());
+
+    const parts: string[] = [];
+    if (isRetroJersey) {
+      if (retroTeam.trim()) parts.push(`Team: ${retroTeam.trim()}`);
+      if (retroYear.trim()) parts.push(`Year: ${retroYear.trim()}`);
+    }
+    if (isCustomized && customizationText.trim()) {
+      parts.push(
+        isRetroJersey
+          ? `Print: ${customizationText.trim()}`
+          : customizationText.trim()
+      );
+    }
+    const combinedCustomization = parts.join(" | ").slice(0, 150);
+
     const colorObj = product.colors.find((c) => c.name === selectedColor);
     addItem({
       productId: product._id,
@@ -155,7 +178,7 @@ export function ProductDetailClient({
       quantity,
       isCustomized,
       customizationFee: isCustomized ? customizationFee : 0,
-      customizationText: isCustomized ? customizationText.trim() : undefined,
+      customizationText: combinedCustomization || undefined,
     });
 
     setAddedState(true);
@@ -408,6 +431,61 @@ export function ProductDetailClient({
               })}
             </div>
           </div>
+
+          {/* Retro Jersey Team & Year Inputs */}
+          {isRetroJersey && (
+            <div className="pt-6 border-t border-border mt-6">
+              <div className="rounded-[20px] border border-border/80 bg-surface/50 p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="text-xs sm:text-sm font-bold text-black">
+                    Retro Kit Details
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/5 text-muted">
+                    Optional
+                  </span>
+                </div>
+                <p className="text-xs text-muted mb-3.5">
+                  Enter the team name and jersey year/season you want (or leave blank to confirm via WhatsApp).
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      htmlFor="retro-team-input"
+                      className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1.5"
+                    >
+                      Team / Club Name
+                    </label>
+                    <input
+                      id="retro-team-input"
+                      type="text"
+                      maxLength={60}
+                      value={retroTeam}
+                      onChange={(e) => setRetroTeam(e.target.value)}
+                      placeholder="e.g. Man United, AC Milan, England"
+                      className="w-full bg-white border border-border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-black placeholder:text-muted-light outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="retro-year-input"
+                      className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1.5"
+                    >
+                      Jersey Year / Season
+                    </label>
+                    <input
+                      id="retro-year-input"
+                      type="text"
+                      maxLength={30}
+                      value={retroYear}
+                      onChange={(e) => setRetroYear(e.target.value)}
+                      placeholder="e.g. 1998/99, 2002, 1995"
+                      className="w-full bg-white border border-border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-black placeholder:text-muted-light outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Customization Option (jerseys, trucker caps, custom streetwear) */}
           {product.isCustomizable && (

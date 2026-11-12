@@ -254,7 +254,7 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
                   <span className="truncate block">
                     {item.quantity}x {item.name} ({item.size}, {item.color})
                   </span>
-                  {item.isCustomized && item.customizationText && (
+                  {item.customizationText && (
                     <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200/70 rounded px-1.5 py-0.2 inline-block font-mono">
                       Custom: {item.customizationText}
                     </span>
@@ -640,7 +640,7 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
                   <p className="text-[11px] text-muted">
                     Qty: {item.quantity} &bull; {item.size} &bull; {item.color}
                   </p>
-                  {item.isCustomized && item.customizationText && (
+                  {item.customizationText && (
                     <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-900 bg-amber-50 border border-amber-200/70 rounded px-1.5 py-0.5 max-w-fit">
                       <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
                       <span className="font-mono truncate max-w-[140px]" title={item.customizationText}>

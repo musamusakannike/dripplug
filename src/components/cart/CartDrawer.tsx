@@ -127,7 +127,7 @@ export function CartDrawer() {
                                   Size: <span className="text-black">{item.size}</span> &bull;{" "}
                                   Color: <span className="text-black">{item.color}</span>
                                 </p>
-                                {item.isCustomized && item.customizationText && (
+                                {item.customizationText && (
                                   <div className="mt-1 flex items-center gap-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200/80 rounded-md px-2 py-0.5 max-w-fit">
                                     <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
                                     <span className="truncate max-w-[170px]" title={item.customizationText}>

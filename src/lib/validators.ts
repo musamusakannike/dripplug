@@ -180,6 +180,7 @@ export const adminProductSchema = z.object({
   isNewArrival: z.boolean().default(false),
   isBestSeller: z.boolean().default(false),
   isCustomizable: z.boolean().default(false),
+  isRetroJersey: z.boolean().default(false).optional(),
   customizationPrice: z.number().int().nonnegative().optional().nullable(),
   customizationPrompt: z.string().trim().max(160).optional().nullable(),
   newArrivalOrder: z.number().int().default(0),

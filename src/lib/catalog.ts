@@ -48,6 +48,7 @@ export function serializeProductDoc(doc: IProduct | Record<string, unknown>): Se
     isNewArrival: Boolean(d.isNewArrival),
     isBestSeller: Boolean(d.isBestSeller),
     isCustomizable: Boolean(d.isCustomizable),
+    isRetroJersey: Boolean(d.isRetroJersey),
     customizationPrice: Number(d.customizationPrice || 0),
     customizationPrompt: d.customizationPrompt ? String(d.customizationPrompt) : undefined,
     newArrivalOrder: Number(d.newArrivalOrder || 0),

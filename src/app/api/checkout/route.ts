@@ -96,16 +96,23 @@ export async function POST(req: NextRequest) {
       }
 
       const baseUnitPrice = variant.priceOverride || product.basePrice;
+      const customText = reqItem.customizationText?.trim() || "";
       const isCustomized = Boolean(
         product.isCustomizable &&
         reqItem.isCustomized &&
-        reqItem.customizationText?.trim()
+        customText
       );
       const customizationFee = isCustomized
         ? Math.max(0, product.customizationPrice || 0)
         : 0;
       const unitPrice = baseUnitPrice + customizationFee;
       subtotal += unitPrice * reqItem.quantity;
+
+      const isRetroProduct = Boolean(
+        product.isRetroJersey ||
+        product.slug.includes("retro") ||
+        product.tags?.some((t) => t.toLowerCase().includes("retro"))
+      );
 
       orderItems.push({
         productId: product._id as Types.ObjectId,
@@ -119,9 +126,10 @@ export async function POST(req: NextRequest) {
         quantity: reqItem.quantity,
         isCustomized,
         customizationFee,
-        customizationText: isCustomized
-          ? reqItem.customizationText!.trim()
-          : undefined,
+        customizationText:
+          (isCustomized || (isRetroProduct && customText))
+            ? customText
+            : undefined,
       });
     }
 

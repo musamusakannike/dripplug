@@ -220,7 +220,7 @@ function renderOrderItemsTable(items: IOrder["items"]): string {
             Size: <strong style="color:#333;">${item.size}</strong> &bull; Color: <strong style="color:#333;">${item.color}</strong> &bull; Qty: ${item.quantity}
           </div>
           ${
-            item.isCustomized && item.customizationText
+            item.customizationText
               ? `
             <div style="margin-top:6px;padding:6px 10px;background-color:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;line-height:1.4;">
               <strong>Customization:</strong> <span style="font-family:monospace;font-size:12px;color:#78350f;">${item.customizationText}</span>

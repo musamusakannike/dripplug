@@ -186,7 +186,7 @@ export function CartPageClient() {
                               {item.color}
                             </span>
                           </p>
-                          {item.isCustomized && item.customizationText && (
+                          {item.customizationText && (
                             <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-900 bg-amber-50 border border-amber-200/80 rounded-md px-2.5 py-1 max-w-fit">
                               <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                               <span className="font-semibold">Custom:</span>
