@@ -49,6 +49,7 @@ export interface SerializedProduct {
   isBestSeller?: boolean;
   isCustomizable?: boolean;
   isRetroJersey?: boolean;
+  allowImageSelection?: boolean;
   customizationPrice?: number;
   customizationPrompt?: string;
   newArrivalOrder?: number;

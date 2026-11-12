@@ -83,6 +83,7 @@ export function ProductDetailClient({
 
   const sizeGuideRef = useRef<HTMLDialogElement>(null);
   const reviewDialogRef = useRef<HTMLDialogElement>(null);
+  const imageConfirmRef = useRef<HTMLDialogElement>(null);
 
   const addItem = useCartStore((s) => s.addItem);
   const addToast = useToastStore((s) => s.addToast);
@@ -135,22 +136,13 @@ export function ProductDetailClient({
     }
   }
 
-  function handleAddToCart() {
-    if (isOutOfStock) {
-      addToast("Selected size/color is out of stock.", "error");
-      return;
-    }
-
-    if (wantsCustomization && product.isCustomizable) {
-      if (!customizationText.trim()) {
-        addToast("Please enter your desired customization details.", "error");
-        return;
-      }
-    }
-
+  function commitAddToCart() {
     const isCustomized = Boolean(wantsCustomization && product.isCustomizable && customizationText.trim());
 
     const parts: string[] = [];
+    if (product.allowImageSelection) {
+      parts.push(`Selected Style: Image #${selectedImageIdx + 1}`);
+    }
     if (isRetroJersey) {
       if (retroTeam.trim()) parts.push(`Team: ${retroTeam.trim()}`);
       if (retroYear.trim()) parts.push(`Year: ${retroYear.trim()}`);
@@ -164,12 +156,16 @@ export function ProductDetailClient({
     }
     const combinedCustomization = parts.join(" | ").slice(0, 150);
 
+    const chosenImage = product.allowImageSelection
+      ? product.images[selectedImageIdx] || product.images[0] || ""
+      : product.images[0] || "";
+
     const colorObj = product.colors.find((c) => c.name === selectedColor);
     addItem({
       productId: product._id,
       slug: product.slug,
       name: product.name,
-      image: product.images[0] || "",
+      image: chosenImage,
       size: selectedSize,
       color: selectedColor,
       colorHex: colorObj?.hex,
@@ -187,6 +183,32 @@ export function ProductDetailClient({
       "success"
     );
     setTimeout(() => setAddedState(false), 1400);
+  }
+
+  function handleAddToCart() {
+    if (isOutOfStock) {
+      addToast("Selected size/color is out of stock.", "error");
+      return;
+    }
+
+    if (wantsCustomization && product.isCustomizable) {
+      if (!customizationText.trim()) {
+        addToast("Please enter your desired customization details.", "error");
+        return;
+      }
+    }
+
+    if (product.allowImageSelection) {
+      imageConfirmRef.current?.showModal();
+      return;
+    }
+
+    commitAddToCart();
+  }
+
+  function confirmImageAndAddToCart() {
+    imageConfirmRef.current?.close();
+    commitAddToCart();
   }
 
   async function handleReviewSubmit(e: React.FormEvent) {
@@ -962,6 +984,79 @@ export function ProductDetailClient({
           </button>
         </form>
       </dialog>
+
+      {/* Image Style Selection Confirmation Modal */}
+      {product.allowImageSelection && (
+        <dialog
+          ref={imageConfirmRef}
+          onClick={(e) => {
+            if (e.target === imageConfirmRef.current) {
+              imageConfirmRef.current?.close();
+            }
+          }}
+          className="m-auto w-[92%] max-w-md rounded-[24px] p-6 bg-white shadow-xl border border-border backdrop:bg-black/45"
+        >
+          <div className="flex items-center justify-between pb-3 border-b border-border">
+            <h2 className="font-heading text-lg uppercase tracking-tight text-black">
+              Confirm Your Selected Style
+            </h2>
+            <button
+              type="button"
+              onClick={() => imageConfirmRef.current?.close()}
+              aria-label="Close style confirmation modal"
+              className="p-1.5 rounded-full hover:bg-surface cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="mt-4 space-y-4">
+            <div className="relative w-full aspect-square max-h-64 rounded-2xl bg-surface overflow-hidden border border-border">
+              <Image
+                src={product.images[selectedImageIdx] || product.images[0] || ""}
+                alt={`${product.name} - Style #${selectedImageIdx + 1}`}
+                fill
+                sizes="(max-width: 640px) 90vw, 400px"
+                className="object-cover object-center"
+              />
+              <span className="absolute top-3 left-3 bg-black/80 text-white text-[11px] font-semibold px-3 py-1 rounded-full">
+                Image #{selectedImageIdx + 1} of {product.images.length}
+              </span>
+            </div>
+
+            <div className="text-xs sm:text-sm text-muted space-y-1">
+              <p className="text-black font-semibold">
+                You&apos;re adding the exact baggy jean shown above to your cart.
+              </p>
+              <p>
+                Size: <span className="text-black font-semibold">{selectedSize}</span> &bull;{" "}
+                Color: <span className="text-black font-semibold">{selectedColor}</span> &bull;{" "}
+                Qty: <span className="text-black font-semibold">{quantity}</span>
+              </p>
+              <p className="text-[11px] text-muted">
+                Want a different pair? Close this window and tap another photo thumbnail before clicking Add to Cart.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={confirmImageAndAddToCart}
+                className="flex-1 h-12 rounded-full bg-black text-white text-xs sm:text-sm font-semibold hover:bg-black/90 transition-colors cursor-pointer"
+              >
+                Confirm &amp; Add to Cart
+              </button>
+              <button
+                type="button"
+                onClick={() => imageConfirmRef.current?.close()}
+                className="h-12 px-5 rounded-full border border-border bg-white text-black text-xs sm:text-sm font-semibold hover:bg-surface transition-colors cursor-pointer"
+              >
+                Pick Another Image
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
     </div>
   );
 }

@@ -127,6 +127,7 @@ export function CheckoutClient({ initialCustomer }: CheckoutClientProps) {
             productId: i.productId,
             slug: i.slug,
             name: i.name,
+            image: i.image,
             size: i.size,
             color: i.color,
             quantity: i.quantity,

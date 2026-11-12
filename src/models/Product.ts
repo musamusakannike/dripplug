@@ -38,6 +38,7 @@ export interface IProduct extends Document {
   isBestSeller: boolean;
   isCustomizable?: boolean;
   isRetroJersey?: boolean;
+  allowImageSelection?: boolean;
   customizationPrice?: number;
   customizationPrompt?: string;
   newArrivalOrder: number;
@@ -99,6 +100,7 @@ const ProductSchema = new Schema<IProduct>(
     isBestSeller: { type: Boolean, default: false, index: true },
     isCustomizable: { type: Boolean, default: false, index: true },
     isRetroJersey: { type: Boolean, default: false, index: true },
+    allowImageSelection: { type: Boolean, default: false },
     customizationPrice: { type: Number, default: 0, min: 0 },
     customizationPrompt: { type: String, trim: true, default: "" },
     newArrivalOrder: { type: Number, default: 0 },

@@ -114,11 +114,16 @@ export async function POST(req: NextRequest) {
         product.tags?.some((t) => t.toLowerCase().includes("retro"))
       );
 
+      const chosenImage =
+        reqItem.image && product.images.includes(reqItem.image)
+          ? reqItem.image
+          : product.images[0] || "";
+
       orderItems.push({
         productId: product._id as Types.ObjectId,
         slug: product.slug,
         name: product.name,
-        image: product.images[0] || "",
+        image: chosenImage,
         size: variant.size,
         color: variant.color,
         sku: variant.sku,
@@ -127,7 +132,7 @@ export async function POST(req: NextRequest) {
         isCustomized,
         customizationFee,
         customizationText:
-          (isCustomized || (isRetroProduct && customText))
+          isCustomized || ((isRetroProduct || product.allowImageSelection) && customText)
             ? customText
             : undefined,
       });
